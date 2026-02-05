@@ -2,12 +2,59 @@
 // Protected Gemini proxy (keeps API key OFF the browser).
 // Add GEMINI_API_KEY in Netlify -> Site settings -> Environment variables.
 
+const https = require("https");
+
 const rateLimit = new Map();
 
 function getIp(headers) {
   const xf = headers["x-forwarded-for"];
   if (xf) return xf.split(",")[0].trim();
   return headers["client-ip"] || headers["x-real-ip"] || "unknown";
+}
+
+async function doFetch(url, options) {
+  if (typeof fetch === "function") {
+    return fetch(url, options);
+  }
+
+  return new Promise((resolve, reject) => {
+    const parsed = new URL(url);
+    const req = https.request(
+      {
+        hostname: parsed.hostname,
+        path: `${parsed.pathname}${parsed.search}`,
+        method: options?.method || "GET",
+        headers: options?.headers || {},
+      },
+      (res) => {
+        let data = "";
+        res.on("data", (chunk) => {
+          data += chunk;
+        });
+        res.on("end", () => {
+          resolve({
+            ok: res.statusCode >= 200 && res.statusCode < 300,
+            status: res.statusCode,
+            text: async () => data,
+            json: async () => {
+              try {
+                return JSON.parse(data);
+              } catch (error) {
+                error.message = `Failed to parse JSON response: ${error.message}`;
+                throw error;
+              }
+            },
+          });
+        });
+      }
+    );
+
+    req.on("error", reject);
+    if (options?.body) {
+      req.write(options.body);
+    }
+    req.end();
+  });
 }
 
 exports.handler = async (event) => {
@@ -73,7 +120,7 @@ ${context}
 Write the explanation now.`;
 
   try {
-    const r = await fetch(
+    const r = await doFetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
@@ -93,7 +140,7 @@ Write the explanation now.`;
     const data = await r.json();
     const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't generate a response from the excerpts provided.";
     return { statusCode: 200, headers, body: JSON.stringify({ answer }) };
-  } catch {
+  } catch (error) {
     return { statusCode: 500, headers, body: JSON.stringify({ error: "AI service unavailable" }) };
   }
 };
