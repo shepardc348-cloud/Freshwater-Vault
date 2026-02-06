@@ -140,14 +140,14 @@ Provide a clear, plain-English explanation with key implications in bullets. Alw
 
     try {
         const response = await doFetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${process.env.GEMINI_API_KEY}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     contents: [{ parts: [{ text: systemPrompt }] }],
                     generationConfig: {
-                        temperature: 0.4,
+                        temperature: 0.2,
                         maxOutputTokens: 500
                     }
                 })
@@ -156,7 +156,11 @@ Provide a clear, plain-English explanation with key implications in bullets. Alw
 
         if (!response.ok) {
             const detail = await response.text().catch(() => '');
-            throw new Error(`Gemini API error${detail ? `: ${detail.slice(0, 200)}` : ''}`);
+            return {
+                statusCode: 502,
+                headers,
+                body: JSON.stringify({ error: 'Gemini API error', detail: detail.slice(0, 300) })
+            };
         }
 
         const data = await response.json();
