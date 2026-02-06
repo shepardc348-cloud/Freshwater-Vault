@@ -66,9 +66,33 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body class="text-gray-100">
+
+<div id="vaultEntry" class="min-h-screen flex items-center justify-center p-6">
+    <div class="max-w-md w-full space-y-8 text-center">
+        <div class="flex justify-center">
+            <div class="w-24 h-24 bg-gradient-to-br from-cyan-500 to-emerald-500 rounded-3xl shadow-2xl shadow-cyan-500/30 flex items-center justify-center text-4xl font-black text-slate-900">
+                FL
+            </div>
+        </div>
+        <div class="space-y-2">
+            <h1 class="text-4xl font-black tracking-tight">Freshwater <span class="text-cyan-400">Vault</span></h1>
+            <p class="text-slate-400 text-lg">Secure Document Portal</p>
+        </div>
+        <div class="glass p-8 rounded-2xl border border-cyan-500/20 shadow-xl space-y-5">
+            <p class="text-sm text-slate-300">Welcome back. Enter the portal to view your agreement and assistant tools.</p>
+            <button onclick="enterPortal()" class="w-full px-6 py-4 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 rounded-xl font-bold transition glow">
+                Enter Portal
+            </button>
+        </div>
+        <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em]">Encrypted • Secure • AI Powered</p>
+    </div>
+</div>
+
+<div id="portalApp" class="hidden">
 
 <header class="glass sticky top-0 z-50 border-b border-cyan-500/20">
     <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
@@ -211,6 +235,8 @@
     </div>
 </div>
 
+</div>
+
 <script>
 const GOOGLE_DOC_ID = '1lRhOh_Ji2jWlI7BUEo32GGskDAqFEmQp';
 let AGREEMENT_TEXT = '';
@@ -265,10 +291,20 @@ async function loadAgreementFromGoogleDocs() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    loadAgreementFromGoogleDocs();
+    const questionInput = document.getElementById('questionInput');
+    questionInput?.setAttribute('disabled', 'disabled');
 });
 
 let currentMode = 'quick';
+
+function enterPortal() {
+    document.getElementById('vaultEntry')?.classList.add('hidden');
+    document.getElementById('portalApp')?.classList.remove('hidden');
+    const questionInput = document.getElementById('questionInput');
+    questionInput?.removeAttribute('disabled');
+    loadAgreementFromGoogleDocs();
+    focusChat();
+}
 
 function parseAgreement() {
     const lines = AGREEMENT_TEXT.split('\n');
