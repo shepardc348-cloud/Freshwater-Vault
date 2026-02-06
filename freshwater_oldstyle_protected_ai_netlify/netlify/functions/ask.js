@@ -1,5 +1,7 @@
 const https = require('https');
 
+const https = require("https");
+
 const rateLimit = new Map();
 
 function getIp(headers = {}) {
@@ -46,6 +48,51 @@ async function doFetch(url, options) {
         }
         req.end();
     });
+}
+
+async function doFetch(url, options) {
+  if (typeof fetch === "function") {
+    return fetch(url, options);
+  }
+
+  return new Promise((resolve, reject) => {
+    const parsed = new URL(url);
+    const req = https.request(
+      {
+        hostname: parsed.hostname,
+        path: `${parsed.pathname}${parsed.search}`,
+        method: options?.method || "GET",
+        headers: options?.headers || {},
+      },
+      (res) => {
+        let data = "";
+        res.on("data", (chunk) => {
+          data += chunk;
+        });
+        res.on("end", () => {
+          resolve({
+            ok: res.statusCode >= 200 && res.statusCode < 300,
+            status: res.statusCode,
+            text: async () => data,
+            json: async () => {
+              try {
+                return JSON.parse(data);
+              } catch (error) {
+                error.message = `Failed to parse JSON response: ${error.message}`;
+                throw error;
+              }
+            },
+          });
+        });
+      }
+    );
+
+    req.on("error", reject);
+    if (options?.body) {
+      req.write(options.body);
+    }
+    req.end();
+  });
 }
 
 exports.handler = async (event) => {
