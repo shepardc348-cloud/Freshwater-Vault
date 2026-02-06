@@ -1,4 +1,52 @@
+const https = require('https');
+
 const rateLimit = new Map();
+
+function getIp(headers = {}) {
+    const forwarded = headers['x-forwarded-for'];
+    if (forwarded) {
+        return forwarded.split(',')[0].trim();
+    }
+    return headers['client-ip'] || headers['x-real-ip'] || 'unknown';
+}
+
+async function doFetch(url, options) {
+    if (typeof fetch === 'function') {
+        return fetch(url, options);
+    }
+
+    return new Promise((resolve, reject) => {
+        const parsed = new URL(url);
+        const req = https.request(
+            {
+                hostname: parsed.hostname,
+                path: `${parsed.pathname}${parsed.search}`,
+                method: options?.method || 'GET',
+                headers: options?.headers || {}
+            },
+            (res) => {
+                let raw = '';
+                res.on('data', (chunk) => {
+                    raw += chunk;
+                });
+                res.on('end', () => {
+                    resolve({
+                        ok: res.statusCode >= 200 && res.statusCode < 300,
+                        status: res.statusCode,
+                        text: async () => raw,
+                        json: async () => JSON.parse(raw)
+                    });
+                });
+            }
+        );
+
+        req.on('error', reject);
+        if (options?.body) {
+            req.write(options.body);
+        }
+        req.end();
+    });
+}
 
 exports.handler = async (event) => {
     const headers = {
@@ -11,7 +59,11 @@ exports.handler = async (event) => {
         return { statusCode: 200, headers, body: '' };
     }
 
-    const ip = event.headers['x-forwarded-for'] || event.headers['client-ip'] || 'unknown';
+    if (event.httpMethod !== 'POST') {
+        return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
+    }
+
+    const ip = getIp(event.headers || {});
     const now = Date.now();
     const hourAgo = now - 3600000;
 
@@ -19,7 +71,7 @@ exports.handler = async (event) => {
         rateLimit.set(ip, []);
     }
 
-    const requests = rateLimit.get(ip).filter(time => time > hourAgo);
+    const requests = rateLimit.get(ip).filter((time) => time > hourAgo);
 
     if (requests.length >= 20) {
         return {
@@ -36,7 +88,7 @@ exports.handler = async (event) => {
 
     let body;
     try {
-        body = JSON.parse(event.body);
+        body = JSON.parse(event.body || '{}');
     } catch {
         return {
             statusCode: 400,
@@ -47,7 +99,7 @@ exports.handler = async (event) => {
 
     const { question, excerpts } = body;
 
-    if (!question || !excerpts || !Array.isArray(excerpts)) {
+    if (!question || !Array.isArray(excerpts) || excerpts.length === 0) {
         return {
             statusCode: 400,
             headers,
@@ -63,7 +115,10 @@ exports.handler = async (event) => {
         };
     }
 
-    const context = excerpts.map(e => `## ${e.heading}\n${e.text}`).join('\n\n');
+    const context = excerpts
+        .slice(0, 3)
+        .map((e) => `## ${String(e.heading || '').slice(0, 220)}\n${String(e.text || '').slice(0, 1400)}`)
+        .join('\n\n');
 
     const systemPrompt = `You are a helpful legal assistant for Freshwater Landscaping LLC.
 
@@ -84,7 +139,7 @@ USER QUESTION: ${question}
 Provide a clear, plain-English explanation with key implications in bullets. Always cite the source heading.`;
 
     try {
-        const response = await fetch(
+        const response = await doFetch(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${process.env.GEMINI_API_KEY}`,
             {
                 method: 'POST',
@@ -100,7 +155,8 @@ Provide a clear, plain-English explanation with key implications in bullets. Alw
         );
 
         if (!response.ok) {
-            throw new Error('Gemini API error');
+            const detail = await response.text().catch(() => '');
+            throw new Error(`Gemini API error${detail ? `: ${detail.slice(0, 200)}` : ''}`);
         }
 
         const data = await response.json();
@@ -111,7 +167,6 @@ Provide a clear, plain-English explanation with key implications in bullets. Alw
             headers,
             body: JSON.stringify({ answer })
         };
-
     } catch (error) {
         console.error('Gemini error:', error);
         return {
