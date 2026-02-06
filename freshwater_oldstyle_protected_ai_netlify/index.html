@@ -7,10 +7,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
+        body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             min-height: 100vh;
+        }
+        .entry-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #f3f4f6;
+        }
+        .app-bg {
+            background: #f8fbff;
+            color: #0f172a;
         }
         .glass { 
             background: rgba(30, 41, 59, 0.7); 
@@ -67,170 +74,146 @@
             100% { transform: rotate(360deg); }
         }
         .hidden { display: none !important; }
+        .vault-shell {
+            background: radial-gradient(circle at 30% 20%, #1f4dbf55 0%, transparent 45%), linear-gradient(180deg, #06132d 0%, #0b1a37 100%);
+        }
+        .doc-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.08);
+        }
     </style>
 </head>
-<body class="text-gray-100">
+<body class="entry-bg">
 
-<div id="vaultEntry" class="min-h-screen flex items-center justify-center p-6">
-    <div class="max-w-md w-full space-y-8 text-center">
+<div id="vaultEntry" class="vault-shell min-h-screen flex items-center justify-center p-6">
+    <div class="max-w-md w-full space-y-7 text-center">
         <div class="flex justify-center">
-            <div class="w-24 h-24 bg-gradient-to-br from-cyan-500 to-emerald-500 rounded-3xl shadow-2xl shadow-cyan-500/30 flex items-center justify-center text-4xl font-black text-slate-900">
-                FL
+            <div class="w-28 h-28 bg-blue-600 rounded-3xl shadow-2xl shadow-blue-500/30 ring-4 ring-blue-500/20 flex items-center justify-center text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3l7 3v5c0 5-3.8 8.7-7 10-3.2-1.3-7-5-7-10V6l7-3z"/></svg>
             </div>
         </div>
         <div class="space-y-2">
-            <h1 class="text-4xl font-black tracking-tight">Freshwater <span class="text-cyan-400">Vault</span></h1>
-            <p class="text-slate-400 text-lg">Secure Document Portal</p>
+            <h1 class="text-5xl font-black tracking-tight text-white">Freshwater <span class="text-blue-400">Vault</span></h1>
+            <p class="text-slate-300 text-2xl">Document Portal + Clause Lookup</p>
         </div>
-        <div class="glass p-8 rounded-2xl border border-cyan-500/20 shadow-xl space-y-5">
-            <p class="text-sm text-slate-300">Welcome back. Enter the portal to view your agreement and assistant tools.</p>
-            <button onclick="enterPortal()" class="w-full px-6 py-4 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 rounded-xl font-bold transition glow">
-                Enter Portal
+        <div class="bg-slate-900/60 border border-slate-700/70 p-8 rounded-3xl shadow-xl space-y-5 backdrop-blur-sm">
+            <p class="text-slate-200 text-lg">View your agreements and ask questions to locate the exact clause.</p>
+            <button onclick="enterPortal()" class="w-full px-6 py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl font-bold transition text-xl">
+                Enter Portal →
             </button>
+            <p class="text-sm text-slate-400">🔒 AI Explain uses a protected server key (no API key in your browser).</p>
         </div>
-        <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em]">Encrypted • Secure • AI Powered</p>
+        <p class="text-xs text-slate-500 uppercase tracking-[0.3em]">Secure • Fast • Client-First</p>
     </div>
 </div>
 
 <div id="portalApp" class="hidden">
-
-<header class="glass sticky top-0 z-50 border-b border-cyan-500/20">
-    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-gradient-to-br from-cyan-500 to-emerald-500 rounded-lg flex items-center justify-center font-bold text-slate-900">
-                FL
+<header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center gap-4">
+        <div class="flex items-center gap-3 font-black text-2xl tracking-tight">
+            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3l7 3v5c0 5-3.8 8.7-7 10-3.2-1.3-7-5-7-10V6l7-3z"/></svg>
             </div>
-            <div>
-                <h1 class="text-xl font-bold">Agreement Intelligence Portal</h1>
-                <p class="text-xs text-gray-400" id="docStatus">Loading agreement...</p>
-            </div>
+            <h1>FRESHWATER <span class="text-blue-600">VAULT</span></h1>
         </div>
-        <a href="tel:6129998067" class="text-cyan-400 hover:text-cyan-300 transition text-sm">
-            📞 612-999-8067
-        </a>
+        <div class="flex items-center gap-3 text-sm font-semibold">
+            <button class="px-5 py-2 rounded-xl bg-blue-50 text-blue-600">Documents</button>
+            <button onclick="toggleAssistant()" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100">Ask</button>
+        </div>
     </div>
 </header>
 
-<section class="max-w-7xl mx-auto px-6 py-12 text-center">
-    <h2 class="text-4xl md:text-5xl font-black mb-4 bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
-        Ask questions. Get the exact clause.
-    </h2>
-    <p class="text-gray-400 max-w-2xl mx-auto mb-8">
-        This tool searches your live agreement and replies in plain English with the most relevant excerpt.
-        It does not invent terms and does not replace the signed agreement.
-    </p>
-    <div class="flex gap-4 justify-center flex-wrap">
-        <button onclick="openAgreement()" class="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 rounded-lg font-semibold transition glow">
-            📄 Open Agreement
+<main class="app-bg max-w-7xl mx-auto px-6 py-8 space-y-6">
+    <section class="bg-blue-600 text-white rounded-3xl p-8 shadow-sm">
+        <h2 class="text-5xl font-black mb-3">Welcome to your Portal</h2>
+        <p class="text-2xl">✅ Status: Active</p>
+        <p class="text-xl mt-2 text-blue-100">Informational only — the signed agreement controls.</p>
+        <p id="docStatus" class="text-sm mt-3 text-blue-100">Loading agreement...</p>
+    </section>
+
+    <section id="docsSection" class="grid md:grid-cols-3 gap-5">
+        <button onclick="openAgreementTo('MASTER SERVICE AGREEMENT')" class="doc-card text-left bg-white border border-slate-200 rounded-3xl p-6 transition">
+            <p class="text-blue-600 text-2xl">📄</p>
+            <h3 class="text-3xl font-black mt-4">Master Service Agreement</h3>
+            <p class="text-lg text-slate-500 mt-2">Core Contract</p>
+            <p class="text-lg text-slate-400 mt-3">Season: 2026 Season →</p>
         </button>
-        <button onclick="focusChat()" class="px-6 py-3 glass hover:bg-slate-700 rounded-lg font-semibold transition">
-            💬 Ask a Question
+        <button onclick="openAgreementTo('RESIDENTIAL SNOW & ICE MANAGEMENT ADDENDUM')" class="doc-card text-left bg-white border border-slate-200 rounded-3xl p-6 transition">
+            <p class="text-blue-600 text-2xl">📄</p>
+            <h3 class="text-3xl font-black mt-4">Residential Snow Addendum</h3>
+            <p class="text-lg text-slate-500 mt-2">Service Specific</p>
+            <p class="text-lg text-slate-400 mt-3">Season: 2026 Season →</p>
         </button>
-    </div>
-</section>
+        <button onclick="openAgreementTo('MOWING')" class="doc-card text-left bg-white border border-slate-200 rounded-3xl p-6 transition">
+            <p class="text-blue-600 text-2xl">📄</p>
+            <h3 class="text-3xl font-black mt-4">Mowing & Maintenance Addendum</h3>
+            <p class="text-lg text-slate-500 mt-2">Service Specific</p>
+            <p class="text-lg text-slate-400 mt-3">Season: 2026 Season →</p>
+        </button>
+    </section>
 
-<div class="max-w-7xl mx-auto px-6 pb-12 grid md:grid-cols-3 gap-6">
-    <div class="md:col-span-2 glass rounded-2xl p-6 space-y-4">
-        <div class="flex justify-between items-center">
-            <h3 class="text-xl font-bold">💬 Ask Assistant</h3>
-            <div class="flex gap-2 text-xs">
-                <button id="modeQuick" onclick="setMode('quick')" class="px-3 py-1 bg-cyan-600 rounded-full">Quick Answer</button>
-                <button id="modeAI" onclick="setMode('ai')" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded-full transition">AI Explain</button>
+    <section class="bg-white border border-slate-200 rounded-3xl p-8">
+        <p class="text-blue-600 font-black text-sm uppercase tracking-wider">⚡ Clause Finder</p>
+        <h3 class="text-5xl font-black mt-3">Ask and get the exact clause.</h3>
+        <p class="text-2xl text-slate-500 mt-3">Quick mode is free (local search). AI Explain gives a plain-English answer and cites the clause using a protected server key.</p>
+        <div class="mt-6 flex gap-3 flex-wrap">
+            <button onclick="toggleAssistant()" class="px-8 py-4 rounded-2xl bg-slate-900 text-white font-bold text-xl">Open Assistant →</button>
+            <button onclick="openAgreement()" class="px-8 py-4 rounded-2xl border border-slate-300 text-slate-700 font-semibold text-xl">Open Agreement</button>
+        </div>
+    </section>
+
+    <section id="assistantSection" class="hidden grid md:grid-cols-3 gap-6 pb-12">
+        <div class="md:col-span-2 bg-white border border-slate-200 rounded-3xl p-6 space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="text-2xl font-black text-slate-900">💬 Ask Assistant</h3>
+                <div class="flex gap-2 text-sm">
+                    <button id="modeQuick" onclick="setMode('quick')" class="px-3 py-1 bg-blue-600 text-white rounded-full">Quick Answer</button>
+                    <button id="modeAI" onclick="setMode('ai')" class="px-3 py-1 bg-slate-200 text-slate-700 hover:bg-slate-300 rounded-full transition">AI Explain</button>
+                </div>
             </div>
-        </div>
-        
-        <div id="chatBox" class="space-y-3 max-h-96 overflow-y-auto pr-2">
-            <div class="glass rounded-lg p-4">
-                <p class="text-sm text-gray-300">👋 Hi! I'm your agreement assistant. Ask me about cancellation, payments, liability, snow triggers, or any clause.</p>
+
+            <div id="chatBox" class="space-y-3 max-h-96 overflow-y-auto pr-2">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <p class="text-sm text-slate-600">👋 Hi! I'm your agreement assistant. Ask me about cancellation, payments, liability, snow triggers, or any clause.</p>
+                </div>
             </div>
+
+            <div class="flex gap-2">
+                <input id="questionInput" type="text" placeholder="e.g., What's the cancellation policy?" class="flex-1 bg-white border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900" onkeypress="if(event.key==='Enter') askQuestion()" />
+                <button onclick="askQuestion()" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold transition">Send</button>
+            </div>
+
+            <p class="text-xs text-slate-500 text-center">⚖️ Informational only. Not legal advice. The signed agreement controls.</p>
         </div>
 
-        <div class="flex gap-2">
-            <input 
-                id="questionInput" 
-                type="text" 
-                placeholder="e.g., What's the cancellation policy?" 
-                class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-white"
-                onkeypress="if(event.key==='Enter') askQuestion()"
-            />
-            <button onclick="askQuestion()" class="px-6 py-3 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 rounded-lg font-semibold transition glow">
-                Send
-            </button>
+        <div class="space-y-4">
+            <h3 class="text-lg font-bold mb-4 text-slate-700">🔥 Popular Topics</h3>
+            <div onclick="askTopic('cancellation')" class="topic-card bg-white border border-slate-200 rounded-xl p-4"><div class="text-2xl mb-2">🚫</div><h4 class="font-semibold text-slate-900">Cancellation</h4><p class="text-xs text-slate-500">Refund policy & timing</p></div>
+            <div onclick="askTopic('payments')" class="topic-card bg-white border border-slate-200 rounded-xl p-4"><div class="text-2xl mb-2">💰</div><h4 class="font-semibold text-slate-900">Payments</h4><p class="text-xs text-slate-500">Late fees & billing</p></div>
+            <div onclick="askTopic('liability')" class="topic-card bg-white border border-slate-200 rounded-xl p-4"><div class="text-2xl mb-2">⚠️</div><h4 class="font-semibold text-slate-900">Liability</h4><p class="text-xs text-slate-500">Damage & responsibility</p></div>
+            <div onclick="askTopic('snow triggers')" class="topic-card bg-white border border-slate-200 rounded-xl p-4"><div class="text-2xl mb-2">❄️</div><h4 class="font-semibold text-slate-900">Snow Triggers</h4><p class="text-xs text-slate-500">When service starts</p></div>
         </div>
-
-        <p class="text-xs text-gray-500 text-center">
-            ⚖️ Informational only. Not legal advice. The signed agreement controls.
-        </p>
-    </div>
-
-    <div class="space-y-4">
-        <h3 class="text-lg font-bold mb-4">🔥 Popular Topics</h3>
-        
-        <div onclick="askTopic('cancellation')" class="topic-card glass rounded-xl p-4">
-            <div class="text-2xl mb-2">🚫</div>
-            <h4 class="font-semibold">Cancellation</h4>
-            <p class="text-xs text-gray-400">Refund policy & timing</p>
-        </div>
-
-        <div onclick="askTopic('payments')" class="topic-card glass rounded-xl p-4">
-            <div class="text-2xl mb-2">💰</div>
-            <h4 class="font-semibold">Payments</h4>
-            <p class="text-xs text-gray-400">Late fees & billing</p>
-        </div>
-
-        <div onclick="askTopic('liability')" class="topic-card glass rounded-xl p-4">
-            <div class="text-2xl mb-2">⚠️</div>
-            <h4 class="font-semibold">Liability</h4>
-            <p class="text-xs text-gray-400">Damage & responsibility</p>
-        </div>
-
-        <div onclick="askTopic('snow triggers')" class="topic-card glass rounded-xl p-4">
-            <div class="text-2xl mb-2">❄️</div>
-            <h4 class="font-semibold">Snow Triggers</h4>
-            <p class="text-xs text-gray-400">When service starts</p>
-        </div>
-
-        <div onclick="askTopic('arbitration')" class="topic-card glass rounded-xl p-4">
-            <div class="text-2xl mb-2">⚖️</div>
-            <h4 class="font-semibold">Dispute Resolution</h4>
-            <p class="text-xs text-gray-400">Arbitration process</p>
-        </div>
-    </div>
-</div>
+    </section>
+</main>
 
 <div id="agreementModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 items-center justify-center p-6">
-    <div class="glass rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
-        <div class="flex justify-between items-center p-6 border-b border-slate-700">
+    <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col border border-slate-200">
+        <div class="flex justify-between items-center p-6 border-b border-slate-200">
             <div>
-                <h3 class="text-xl font-bold">📄 Master Service Agreement</h3>
-                <p class="text-xs text-gray-400" id="modalDocStatus">Full contract document</p>
+                <h3 class="text-xl font-bold text-slate-900">📄 Master Service Agreement</h3>
+                <p class="text-xs text-slate-500" id="modalDocStatus">Full contract document</p>
             </div>
-            <button onclick="closeAgreement()" class="text-gray-400 hover:text-white text-2xl">×</button>
+            <button onclick="closeAgreement()" class="text-slate-400 hover:text-slate-700 text-2xl">×</button>
         </div>
-        
-        <div class="p-6 border-b border-slate-700">
-            <input 
-                id="searchInput" 
-                type="text" 
-                placeholder="Search agreement..." 
-                class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                oninput="searchAgreement()"
-            />
+        <div class="p-6 border-b border-slate-200">
+            <input id="searchInput" type="text" placeholder="Search agreement..." class="w-full bg-white border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900" oninput="searchAgreement()" />
         </div>
-
-        <div id="agreementContent" class="agreement-content flex-1 overflow-y-auto p-6 text-sm leading-relaxed">
-            <div class="flex items-center justify-center py-12">
-                <div class="loading-spinner"></div>
-            </div>
+        <div id="agreementContent" class="agreement-content flex-1 overflow-y-auto p-6 text-sm leading-relaxed text-slate-700">
+            <div class="flex items-center justify-center py-12"><div class="loading-spinner"></div></div>
         </div>
-
-        <div class="p-6 border-t border-slate-700 flex justify-between">
-            <a href="https://docs.google.com/document/d/1lRhOh_Ji2jWlI7BUEo32GGskDAqFEmQp/export?format=pdf" target="_blank" class="px-4 py-2 glass hover:bg-slate-700 rounded-lg transition">
-                📥 Download PDF
-            </a>
-            <button onclick="closeAgreement()" class="px-6 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg font-semibold transition">
-                Close
-            </button>
+        <div class="p-6 border-t border-slate-200 flex justify-between">
+            <a href="https://docs.google.com/document/d/1lRhOh_Ji2jWlI7BUEo32GGskDAqFEmQp/export?format=pdf" target="_blank" class="px-4 py-2 border border-slate-300 hover:bg-slate-100 rounded-lg transition text-slate-700">📥 Download PDF</a>
+            <button onclick="closeAgreement()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition">Close</button>
         </div>
     </div>
 </div>
@@ -300,10 +283,19 @@ let currentMode = 'quick';
 function enterPortal() {
     document.getElementById('vaultEntry')?.classList.add('hidden');
     document.getElementById('portalApp')?.classList.remove('hidden');
+    document.body.classList.remove('entry-bg');
+    document.body.classList.add('app-bg');
     const questionInput = document.getElementById('questionInput');
     questionInput?.removeAttribute('disabled');
     loadAgreementFromGoogleDocs();
-    focusChat();
+}
+
+function toggleAssistant() {
+    const assistant = document.getElementById('assistantSection');
+    assistant?.classList.toggle('hidden');
+    if (assistant && !assistant.classList.contains('hidden')) {
+        focusChat();
+    }
 }
 
 function parseAgreement() {
@@ -454,8 +446,8 @@ function addMessage(text, role, id = null) {
     const div = document.createElement('div');
     if (id) div.id = id;
     div.className = role === 'user' 
-        ? 'bg-cyan-600 rounded-lg p-3 ml-auto max-w-[80%] text-sm'
-        : 'glass rounded-lg p-4 text-sm';
+        ? 'bg-blue-600 text-white rounded-lg p-3 ml-auto max-w-[80%] text-sm'
+        : 'bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-700';
     div.innerHTML = text;
     chatBox.appendChild(div);
     chatBox.scrollTop = chatBox.scrollHeight;
@@ -469,11 +461,11 @@ function removeThinking() {
 function setMode(mode) {
     currentMode = mode;
     document.getElementById('modeQuick').className = mode === 'quick' 
-        ? 'px-3 py-1 bg-cyan-600 rounded-full' 
-        : 'px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded-full transition';
+        ? 'px-3 py-1 bg-blue-600 text-white rounded-full' 
+        : 'px-3 py-1 bg-slate-200 text-slate-700 hover:bg-slate-300 rounded-full transition';
     document.getElementById('modeAI').className = mode === 'ai' 
-        ? 'px-3 py-1 bg-cyan-600 rounded-full' 
-        : 'px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded-full transition';
+        ? 'px-3 py-1 bg-blue-600 text-white rounded-full' 
+        : 'px-3 py-1 bg-slate-200 text-slate-700 hover:bg-slate-300 rounded-full transition';
 }
 
 function askTopic(topic) {
