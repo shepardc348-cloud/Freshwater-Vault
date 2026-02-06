@@ -51,11 +51,8 @@
 
     const { Shield, MessageSquare, FileCheck, ChevronRight, ArrowRight, Zap, X, FileText, CheckCircle, Send, Search, Lock } = Icons;
 
-    // ---------------------------------------------------------------------
-    // AGREEMENT TEXT (Paste your full MSA here)
-    // Tip: paste the entire agreement text between the backticks.
-    // ---------------------------------------------------------------------
-    const AGREEMENT_TEXT = `{{PASTE_YOUR_MASTER_SERVICE_AGREEMENT_TEXT_HERE}}`;
+    const GOOGLE_DOC_ID = "1lRhOh_Ji2jWlI7BUEo32GGskDAqFEmQp";
+    const FALLBACK_AGREEMENT_TEXT = "Agreement is loading. If this persists, confirm the Google Doc sharing permissions allow web export.";
 
     // ---------------------------------------------------------------------
     // Lightweight local clause finder (FREE mode):
@@ -97,8 +94,6 @@
       return chunks.length ? chunks : [{ heading: "AGREEMENT", text: text || "" }];
     }
 
-    const CHUNKS = parseAgreement(AGREEMENT_TEXT);
-
     const SYNONYMS = {
       cancel: ["cancellation","terminate","termination","quit","end","refund","deposit"],
       payment: ["payments","invoice","billing","net","fee","charge"],
@@ -124,9 +119,9 @@
       return Array.from(set).filter(t => t.length >= 3).slice(0, 30);
     }
 
-    function bestMatches(question, top=3){
+    function bestMatches(question, chunks, top=3){
       const tokens = expandTokens(question);
-      const scored = CHUNKS.map(c => {
+      const scored = (chunks || []).map(c => {
         const hay = (c.heading + "\n" + c.text).toLowerCase();
         let score = 0;
         for (const t of tokens){
@@ -144,6 +139,32 @@
     function excerpt(text, limit=900){
       const s = (text || "").trim().replace(/\s+/g, " ");
       return s.length > limit ? s.slice(0, limit) + "…" : s;
+    }
+
+    function highlightHtmlContent(html, query) {
+      if (!html) return "";
+      if (!query) return html;
+
+      const temp = document.createElement("div");
+      temp.innerHTML = html;
+      const lowered = query.toLowerCase();
+      const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+      const walker = document.createTreeWalker(temp, NodeFilter.SHOW_TEXT);
+      const nodes = [];
+
+      while (walker.nextNode()) {
+        if (walker.currentNode.textContent.toLowerCase().includes(lowered)) {
+          nodes.push(walker.currentNode);
+        }
+      }
+
+      nodes.forEach((node) => {
+        const span = document.createElement("span");
+        span.innerHTML = node.textContent.replace(regex, '<mark class="bg-blue-200 text-slate-900 px-1 rounded">$1</mark>');
+        node.parentNode.replaceChild(span, node);
+      });
+
+      return temp.innerHTML;
     }
 
     // ---------------------------------------------------------------------
@@ -168,6 +189,9 @@
       const [view, setView] = useState("landing");
       const [tab, setTab] = useState("dashboard"); // dashboard | chat
       const [mode, setMode] = useState("quick");   // quick | ai
+      const [agreementText, setAgreementText] = useState(FALLBACK_AGREEMENT_TEXT);
+      const [agreementHtml, setAgreementHtml] = useState("");
+      const [docStatus, setDocStatus] = useState("Loading agreement…");
       const [isTyping, setIsTyping] = useState(false);
       const [chatInput, setChatInput] = useState("");
       const [chatHistory, setChatHistory] = useState([
@@ -181,6 +205,8 @@
       const [showDocViewer, setShowDocViewer] = useState(false);
       const [docSearch, setDocSearch] = useState("");
       const docTextRef = useRef(null);
+
+      const chunks = parseAgreement(agreementText);
 
       const clientDocs = [
         { id: 1, title: "Master Service Agreement", signed: "2026 Season", type: "Core Contract", status: "active" },
@@ -201,7 +227,7 @@
         setChatInput("");
         setIsTyping(true);
 
-        const hits = bestMatches(q, 3);
+        const hits = bestMatches(q, chunks, 3);
 
         if (!hits.length) {
           pushAI("I couldn’t locate that in the agreement text I have loaded. Try keywords like: cancellation, late fee, liability, arbitration, scope.");
@@ -234,24 +260,43 @@
         }
       };
 
-      const highlightDoc = (text, query) => {
-        if (!query) return text;
-        const safe = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const re = new RegExp(`(${safe})`, "gi");
-        return text.replace(re, "««$1»»");
-      };
+      useEffect(() => {
+        async function loadAgreement() {
+          try {
+            setDocStatus("Fetching latest agreement…");
+            const response = await fetch(`https://docs.google.com/document/d/${GOOGLE_DOC_ID}/export?format=html`);
+            if (!response.ok) throw new Error("Could not fetch live agreement");
 
-      const renderHighlighted = (raw) => {
-        // convert our marker tokens to <mark>
-        const escaped = raw
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;");
+            const html = await response.text();
+            const temp = document.createElement("div");
+            temp.innerHTML = html;
+            const text = (temp.textContent || temp.innerText || "").trim() || FALLBACK_AGREEMENT_TEXT;
 
-        return escaped
-          .replace(/««/g, '<mark class="bg-blue-200 text-slate-900 px-1 rounded">')
-          .replace(/»»/g, "</mark>");
-      };
+            setAgreementHtml(html);
+            setAgreementText(text);
+            localStorage.setItem("agreement_html", html);
+            localStorage.setItem("agreement_text", text);
+            localStorage.setItem("agreement_updated", String(Date.now()));
+            setDocStatus(`Updated ${new Date().toLocaleTimeString()}`);
+          } catch {
+            const cachedHtml = localStorage.getItem("agreement_html") || "";
+            const cachedText = localStorage.getItem("agreement_text") || "";
+            const cachedUpdated = Number(localStorage.getItem("agreement_updated") || "0");
+
+            if (cachedHtml || cachedText) {
+              setAgreementHtml(cachedHtml);
+              setAgreementText(cachedText || FALLBACK_AGREEMENT_TEXT);
+              setDocStatus(cachedUpdated ? `Cached ${new Date(cachedUpdated).toLocaleDateString()}` : "Using cached agreement");
+            } else {
+              setAgreementHtml("");
+              setAgreementText(FALLBACK_AGREEMENT_TEXT);
+              setDocStatus("Agreement unavailable");
+            }
+          }
+        }
+
+        loadAgreement();
+      }, []);
 
       // Auto-scroll chat to bottom
       const chatEndRef = useRef(null);
@@ -329,6 +374,7 @@
                   <div className="flex flex-col gap-2 text-blue-100 text-sm mt-3">
                     <div className="flex items-center gap-2"><CheckCircle size={14} /> <span>Status: Active</span></div>
                     <div className="text-xs text-blue-100/90">Informational only — the signed agreement controls.</div>
+                    <div className="text-xs text-blue-100/90">Live doc: {docStatus}</div>
                   </div>
                 </div>
 
@@ -469,7 +515,10 @@
                     className="bg-white p-8 shadow-sm border border-slate-200 text-sm whitespace-pre-wrap leading-relaxed"
                     ref={docTextRef}
                     dangerouslySetInnerHTML={{
-                      __html: renderHighlighted(highlightDoc(AGREEMENT_TEXT || "Paste your agreement text into AGREEMENT_TEXT in index.html.", docSearch))
+                      __html: highlightHtmlContent(
+                        agreementHtml || `<p>${agreementText || FALLBACK_AGREEMENT_TEXT}</p>`,
+                        docSearch
+                      )
                     }}
                   />
                 </div>

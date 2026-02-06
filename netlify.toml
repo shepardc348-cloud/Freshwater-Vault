@@ -1,0 +1,12 @@
+[build]
+  base = "freshwater_oldstyle_protected_ai_netlify"
+  publish = "."
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
