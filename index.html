@@ -135,8 +135,53 @@
       Download, List, AlertCircle, Clock, ExternalLink, Keyboard } = Icons;
 
     // ─── Constants ─────────────────────────────────────────────────
-    const GOOGLE_DOC_ID = '1lRhOh_Ji2jWlI7BUEo32GGskDAqFEmQp';
     const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+
+    // Document registry — add Google Doc IDs here as you upload them
+    // To add a new doc: upload .docx to Google Drive, open with Google Docs,
+    // share as "Anyone with link > Viewer", copy the Doc ID from the URL
+    const DOCUMENTS = {
+      msa: {
+        id: 'msa',
+        title: 'Master Service Agreement',
+        type: 'Core Contract',
+        season: '2026 Season',
+        googleDocId: '1lRhOh_Ji2jWlI7BUEo32GGskDAqFEmQp',
+        audience: ['residential', 'commercial'], // shown to both
+      },
+      residential_snow: {
+        id: 'residential_snow',
+        title: 'Residential Snow Addendum',
+        type: 'Service Specific',
+        season: '2026 Season',
+        googleDocId: '', // ADD DOC ID WHEN UPLOADED
+        audience: ['residential'],
+      },
+      mowing: {
+        id: 'mowing',
+        title: 'Mowing & Maintenance Addendum',
+        type: 'Service Specific',
+        season: '2026 Season',
+        googleDocId: '', // ADD DOC ID WHEN UPLOADED
+        audience: ['residential'],
+      },
+      commercial_snow: {
+        id: 'commercial_snow',
+        title: 'Commercial Snow Agreement',
+        type: 'Service Specific',
+        season: '2026 Season',
+        googleDocId: '', // ADD DOC ID WHEN UPLOADED
+        audience: ['commercial'],
+      },
+      subscription: {
+        id: 'subscription',
+        title: 'Subscription Services Addendum',
+        type: 'Service Specific',
+        season: '2026 Season',
+        googleDocId: '', // ADD DOC ID WHEN UPLOADED
+        audience: ['commercial'],
+      },
+    };
 
     // ─── Utilities ─────────────────────────────────────────────────
     function sanitize(str) {
@@ -370,7 +415,7 @@
     }
 
     // ─── Document Viewer Modal ─────────────────────────────────────
-    function DocViewer({ agreementText, onClose }) {
+    function DocViewer({ agreementText, docTitle = 'Agreement', onClose }) {
       const [docSearch, setDocSearch] = useState('');
       const [showTOC, setShowTOC] = useState(false);
       const contentRef = useRef(null);
@@ -392,7 +437,7 @@
             <div className="flex justify-between items-center p-6 border-b border-slate-200 dark:border-slate-700">
               <div className="flex items-center gap-3">
                 <FileText className="text-cyan-500" size={24} />
-                <h2 className="font-bold text-lg dark:text-white">Master Service Agreement</h2>
+                <h2 className="font-bold text-lg dark:text-white">{docTitle}</h2>
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={() => setShowTOC(true)} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Table of Contents"><List size={18} className="text-slate-500 dark:text-slate-400" /></button>
@@ -498,10 +543,12 @@
     function App() {
       const [view, setView] = useState(() => sessionStorage.getItem('fw_view') || 'landing');
       const [tab, setTab] = useState(() => sessionStorage.getItem('fw_tab') || 'dashboard');
+      const [clientType, setClientType] = useState(() => sessionStorage.getItem('fw_client_type') || null); // 'residential' | 'commercial'
       const [mode, setMode] = useState('quick');
       const [isTyping, setIsTyping] = useState(false);
-      const [agreementText, setAgreementText] = useState('');
-      const [agreementStatus, setAgreementStatus] = useState('loading');
+      const [docTexts, setDocTexts] = useState({}); // { docId: text }
+      const [docStatuses, setDocStatuses] = useState({}); // { docId: 'loading'|'loaded'|'cached'|'error'|'no-id' }
+      const [activeDocId, setActiveDocId] = useState(null); // which doc is open in viewer
       const [chatInput, setChatInput] = useState('');
       const [chatHistory, setChatHistory] = useState([
         { role: 'ai', text: 'Welcome to the Freshwater Vault. Ask about your agreement terms and I\'ll show the exact clause. (Informational only \u2014 the signed agreement controls.)' }
@@ -522,6 +569,7 @@
       // Persist state
       useEffect(() => { sessionStorage.setItem('fw_view', view); }, [view]);
       useEffect(() => { sessionStorage.setItem('fw_tab', tab); }, [tab]);
+      useEffect(() => { if (clientType) sessionStorage.setItem('fw_client_type', clientType); }, [clientType]);
 
       // Dark mode
       useEffect(() => {
@@ -532,40 +580,77 @@
       // Analytics init
       useEffect(() => { analytics.init(); }, []);
 
-      // Load agreement
+      // Load documents for current client type
       useEffect(() => {
-        const loadAgreement = async () => {
-          // Check cache first
-          const cached = localStorage.getItem('agreement_cache');
-          const cachedTime = localStorage.getItem('agreement_cache_time');
-          if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
-            setAgreementText(cached);
-            setAgreementStatus('cached');
+        if (!clientType) return;
+
+        const visibleDocs = Object.values(DOCUMENTS).filter(d => d.audience.includes(clientType));
+
+        visibleDocs.forEach(async (doc) => {
+          if (!doc.googleDocId) {
+            setDocStatuses(prev => ({ ...prev, [doc.id]: 'no-id' }));
+            setDocTexts(prev => ({ ...prev, [doc.id]: 'Document coming soon. Contact Freshwater for details.' }));
             return;
           }
 
+          const cacheKey = `fw_doc_${doc.id}`;
+          const cacheTimeKey = `fw_doc_time_${doc.id}`;
+          const cached = localStorage.getItem(cacheKey);
+          const cachedTime = localStorage.getItem(cacheTimeKey);
+
+          if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
+            setDocTexts(prev => ({ ...prev, [doc.id]: cached }));
+            setDocStatuses(prev => ({ ...prev, [doc.id]: 'cached' }));
+            return;
+          }
+
+          setDocStatuses(prev => ({ ...prev, [doc.id]: 'loading' }));
+
           try {
-            const response = await fetch(`https://docs.google.com/document/d/${GOOGLE_DOC_ID}/export?format=txt`);
+            const response = await fetch(`https://docs.google.com/document/d/${doc.googleDocId}/export?format=txt`);
             if (!response.ok) throw new Error('Fetch failed');
             const text = await response.text();
-            setAgreementText(text);
-            setAgreementStatus('loaded');
-            localStorage.setItem('agreement_cache', text);
-            localStorage.setItem('agreement_cache_time', Date.now().toString());
-            showToast('Agreement loaded successfully', 'success');
+            setDocTexts(prev => ({ ...prev, [doc.id]: text }));
+            setDocStatuses(prev => ({ ...prev, [doc.id]: 'loaded' }));
+            localStorage.setItem(cacheKey, text);
+            localStorage.setItem(cacheTimeKey, Date.now().toString());
           } catch (err) {
             if (cached) {
-              setAgreementText(cached);
-              setAgreementStatus('cached');
-              showToast('Using cached agreement copy', 'warning');
+              setDocTexts(prev => ({ ...prev, [doc.id]: cached }));
+              setDocStatuses(prev => ({ ...prev, [doc.id]: 'cached' }));
             } else {
-              setAgreementText('Unable to load agreement. Please contact support.');
-              setAgreementStatus('error');
-              showToast('Failed to load agreement', 'error');
+              setDocTexts(prev => ({ ...prev, [doc.id]: 'Unable to load document. Please contact support.' }));
+              setDocStatuses(prev => ({ ...prev, [doc.id]: 'error' }));
             }
           }
-        };
-        loadAgreement();
+        });
+      }, [clientType]);
+
+      // Backward compat: combined text for search across all loaded docs
+      const agreementText = useMemo(() => Object.values(docTexts).join('\n\n---\n\n'), [docTexts]);
+      const agreementStatus = useMemo(() => {
+        const statuses = Object.values(docStatuses);
+        if (statuses.length === 0) return 'loading';
+        if (statuses.every(s => s === 'loaded')) return 'loaded';
+        if (statuses.some(s => s === 'loaded' || s === 'cached')) return 'cached';
+        if (statuses.some(s => s === 'loading')) return 'loading';
+        return 'error';
+      }, [docStatuses]);
+
+      // Get documents visible to current client type
+      const visibleDocs = useMemo(() => {
+        if (!clientType) return [];
+        return Object.values(DOCUMENTS).filter(d => d.audience.includes(clientType));
+      }, [clientType]);
+
+      // Check URL params for client type
+      useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const type = params.get('type');
+        if (type === 'residential' || type === 'commercial') {
+          setClientType(type);
+          setView('dashboard');
+        }
       }, []);
 
       // Scroll chat
@@ -605,11 +690,7 @@
         }
       }, []);
 
-      const clientDocs = [
-        { id: 1, title: 'Master Service Agreement', signed: '2026 Season', type: 'Core Contract', status: 'active' },
-        { id: 2, title: 'Residential Snow Addendum', signed: '2026 Season', type: 'Service Specific', status: 'active' },
-        { id: 3, title: 'Mowing & Maintenance Addendum', signed: '2026 Season', type: 'Service Specific', status: 'active' },
-      ];
+      // clientDocs is now derived from visibleDocs + docStatuses
 
       const pushMsg = (role, text) => setChatHistory(prev => [...prev, { role, text }]);
 
@@ -688,12 +769,19 @@
                 </div>
 
                 <div className="space-y-3">
-                  <button onClick={() => setView('dashboard')}
-                    className="w-full bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 py-4 rounded-xl font-bold transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20">
-                    Enter Portal <ArrowRight size={20} />
+                  <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider text-center">Select your account type</p>
+
+                  <button onClick={() => { setClientType('residential'); setView('dashboard'); }}
+                    className="w-full bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 py-4 rounded-xl font-bold transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 shadow-lg shadow-cyan-500/20">
+                    <span className="text-lg">🏠</span> Residential Client <ArrowRight size={18} />
                   </button>
 
-                  <button onClick={() => { setView('dashboard'); setTab('chat'); }}
+                  <button onClick={() => { setClientType('commercial'); setView('dashboard'); }}
+                    className="w-full bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 py-4 rounded-xl font-bold transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/20">
+                    <span className="text-lg">🏢</span> Commercial Client <ArrowRight size={18} />
+                  </button>
+
+                  <button onClick={() => { setView('dashboard'); setTab('chat'); setClientType(clientType || 'residential'); }}
                     className="w-full bg-slate-700/50 hover:bg-slate-700 py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2 text-sm border border-slate-600/50">
                     <Zap size={16} /> Quick Clause Lookup
                   </button>
@@ -776,8 +864,18 @@
                 <div className="bg-gradient-to-r from-cyan-600 via-cyan-500 to-emerald-500 text-white rounded-2xl p-6 sm:p-8 shadow-lg shadow-cyan-500/10 relative overflow-hidden">
                   <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiLz48L3N2Zz4=')] opacity-50" aria-hidden="true" />
                   <div className="relative z-10">
-                    <h2 className="text-2xl sm:text-3xl font-bold mb-1">Welcome to your Portal</h2>
-                    <p className="text-cyan-100 text-sm mt-2">View documents, search clauses, and get instant answers.</p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-2xl sm:text-3xl font-bold mb-1">Welcome to your Portal</h2>
+                        <p className="text-cyan-100 text-sm mt-2">
+                          {clientType === 'commercial' ? 'Commercial' : 'Residential'} Client Documents
+                        </p>
+                      </div>
+                      <button onClick={() => { setClientType(null); setView('landing'); }}
+                        className="text-xs bg-white/10 hover:bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full transition font-medium">
+                        Switch Type
+                      </button>
+                    </div>
                     <div className="flex flex-wrap gap-3 mt-4">
                       <div className="flex items-center gap-2 text-sm bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full">
                         <CheckCircle size={14} />
@@ -785,46 +883,54 @@
                       </div>
                       <div className="flex items-center gap-2 text-sm bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full">
                         <Clock size={14} />
-                        <span>Updated {agreementStatus === 'loaded' ? 'just now' : 'recently'}</span>
+                        <span>{visibleDocs.length} document{visibleDocs.length !== 1 ? 's' : ''}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Document Cards */}
-                {agreementStatus === 'loading' ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {[1,2,3].map(i => (
-                      <div key={i} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
-                        <Skeleton className="h-12 w-12 mb-4" />
-                        <Skeleton className="h-5 w-3/4 mb-2" />
-                        <Skeleton className="h-4 w-1/2 mb-4" />
-                        <Skeleton className="h-3 w-full" />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {clientDocs.map((doc, i) => (
-                      <div key={doc.id} onClick={() => setShowDocViewer(true)}
-                        className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-lg hover:border-cyan-300 dark:hover:border-cyan-600 transition-all duration-300 cursor-pointer group animate-slide-up"
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {visibleDocs.map((doc, i) => {
+                    const status = docStatuses[doc.id] || 'loading';
+                    const hasContent = status === 'loaded' || status === 'cached';
+                    const isComingSoon = status === 'no-id';
+
+                    return (
+                      <div key={doc.id}
+                        onClick={() => { setActiveDocId(doc.id); setShowDocViewer(true); }}
+                        className={`bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border transition-all duration-300 cursor-pointer group animate-slide-up ${
+                          isComingSoon
+                            ? 'border-slate-200 dark:border-slate-700 opacity-70'
+                            : 'border-slate-200 dark:border-slate-700 hover:shadow-lg hover:border-cyan-300 dark:hover:border-cyan-600'
+                        }`}
                         style={{ animationDelay: `${i * 100}ms` }}
                         role="button" tabIndex={0} aria-label={`View ${doc.title}`}
-                        onKeyDown={e => e.key === 'Enter' && setShowDocViewer(true)}>
+                        onKeyDown={e => e.key === 'Enter' && (() => { setActiveDocId(doc.id); setShowDocViewer(true); })()}>
                         <div className="flex items-start justify-between mb-4">
-                          <div className="bg-cyan-50 dark:bg-cyan-500/10 p-3 rounded-xl text-cyan-600 dark:text-cyan-400 group-hover:scale-110 transition-transform"><FileCheck size={24} /></div>
-                          <span className="text-xs px-2 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 rounded-full font-medium">Active</span>
+                          <div className="bg-cyan-50 dark:bg-cyan-500/10 p-3 rounded-xl text-cyan-600 dark:text-cyan-400 group-hover:scale-110 transition-transform">
+                            {status === 'loading' ? <Skeleton className="h-6 w-6" /> : <FileCheck size={24} />}
+                          </div>
+                          <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                            isComingSoon
+                              ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400'
+                              : hasContent
+                                ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                                : 'bg-slate-100 dark:bg-slate-700 text-slate-500'
+                          }`}>
+                            {isComingSoon ? 'Coming Soon' : hasContent ? 'Active' : status === 'loading' ? 'Loading...' : 'Error'}
+                          </span>
                         </div>
                         <h3 className="font-bold text-lg mb-1 dark:text-white">{doc.title}</h3>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{doc.type}</p>
                         <div className="flex items-center justify-between text-xs text-slate-400">
-                          <span>Season: {doc.signed}</span>
+                          <span>Season: {doc.season}</span>
                           <ChevronRight className="text-slate-300 dark:text-slate-600 group-hover:text-cyan-500 group-hover:translate-x-1 transition-all" size={16} />
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    );
+                  })}
+                </div>
 
                 {/* CTA Card */}
                 <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 relative overflow-hidden shadow-sm">
@@ -929,7 +1035,11 @@
           </main>
 
           {/* Modals */}
-          {showDocViewer && <DocViewer agreementText={agreementText} onClose={() => setShowDocViewer(false)} />}
+          {showDocViewer && <DocViewer
+            agreementText={activeDocId ? (docTexts[activeDocId] || 'Loading...') : agreementText}
+            docTitle={activeDocId ? (DOCUMENTS[activeDocId]?.title || 'Document') : 'Agreement'}
+            onClose={() => { setShowDocViewer(false); setActiveDocId(null); }}
+          />}
           {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
           {showAnalytics && <AnalyticsDashboard onClose={() => setShowAnalytics(false)} />}
         </div>
