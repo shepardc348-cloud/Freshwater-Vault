@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Freshwater Vault - Client Portal</title>
+  <meta name="description" content="Freshwater Vault — secure client portal for agreement management and AI-powered clause lookup." />
+  <meta name="theme-color" content="#0f172a" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/public/assets/icons/icon-192.png" />
+
+  <!-- Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- React + Babel -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { cyan: '#06b6d4', emerald: '#10b981' },
+            vault: {
+              50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4',
+              500: '#14b8a6', 600: '#0d9488', 700: '#0f766e',
+              800: '#115e59', 900: '#134e4a', 950: '#0f172a'
+            }
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          animation: {
+            'fade-in': 'fadeIn 0.5s ease-out',
+            'slide-up': 'slideUp 0.4s ease-out',
+            'slide-down': 'slideDown 0.3s ease-out',
+            'scale-in': 'scaleIn 0.3s ease-out',
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'shimmer': 'shimmer 2s infinite linear',
+            'float': 'float 6s ease-in-out infinite',
+          },
+          keyframes: {
+            fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+            slideUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+            slideDown: { '0%': { opacity: '0', transform: 'translateY(-10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+            scaleIn: { '0%': { opacity: '0', transform: 'scale(0.95)' }, '100%': { opacity: '1', transform: 'scale(1)' } },
+            shimmer: { '0%': { backgroundPosition: '-200% 0' }, '100%': { backgroundPosition: '200% 0' } },
+            float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
+          }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="/src/css/main.css" />
+  <link rel="stylesheet" href="/src/css/themes.css" />
+
+  <style>
+    /* Critical inline styles */
+    body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: #f8fafc; }
+    .dark body { background: #0f172a; }
+    .glass { background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+    .dark .glass { background: rgba(15,23,42,0.85); }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .gradient-text { background: linear-gradient(135deg, #06b6d4, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .gradient-border { border-image: linear-gradient(135deg, #06b6d4, #10b981) 1; }
+    .skeleton { background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%); background-size: 200% 100%; animation: shimmer 2s infinite linear; }
+    .dark .skeleton { background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%); background-size: 200% 100%; }
+    @media print {
+      nav, .chat-panel, .no-print { display: none !important; }
+      .print-only { display: block !important; }
+      body { background: white !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root" role="application" aria-label="Freshwater Vault Client Portal"></div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed top-4 right-4 z-[100] space-y-2" aria-live="polite"></div>
+
+  <script type="text/babel">
+    const { useState, useRef, useEffect, useCallback, useMemo, createContext, useContext } = React;
+
+    // ─── Context ───────────────────────────────────────────────────
+    const ThemeContext = createContext();
+    const ToastContext = createContext();
+
+    // ─── Icons ─────────────────────────────────────────────────────
+    const I = ({ children, size = 24, className = "" }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        {children}
+      </svg>
+    );
+
+    const Icons = {
+      Shield: (p) => <I {...p}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></I>,
+      MessageSquare: (p) => <I {...p}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></I>,
+      FileCheck: (p) => <I {...p}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></I>,
+      ChevronRight: (p) => <I {...p}><polyline points="9 18 15 12 9 6"/></I>,
+      ChevronDown: (p) => <I {...p}><polyline points="6 9 12 15 18 9"/></I>,
+      ArrowRight: (p) => <I {...p}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></I>,
+      Zap: (p) => <I {...p}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></I>,
+      X: (p) => <I {...p}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></I>,
+      FileText: (p) => <I {...p}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></I>,
+      CheckCircle: (p) => <I {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></I>,
+      Send: (p) => <I {...p}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></I>,
+      Search: (p) => <I {...p}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></I>,
+      Lock: (p) => <I {...p}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></I>,
+      Sun: (p) => <I {...p}><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></I>,
+      Moon: (p) => <I {...p}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></I>,
+      Menu: (p) => <I {...p}><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></I>,
+      BarChart: (p) => <I {...p}><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></I>,
+      Printer: (p) => <I {...p}><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></I>,
+      Download: (p) => <I {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></I>,
+      List: (p) => <I {...p}><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></I>,
+      AlertCircle: (p) => <I {...p}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></I>,
+      Clock: (p) => <I {...p}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></I>,
+      ExternalLink: (p) => <I {...p}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></I>,
+      Keyboard: (p) => <I {...p}><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><path d="M6 8h.001"/><path d="M10 8h.001"/><path d="M14 8h.001"/><path d="M18 8h.001"/><path d="M8 12h.001"/><path d="M12 12h.001"/><path d="M16 12h.001"/><line x1="7" y1="16" x2="17" y2="16"/></I>,
+    };
+
+    const { Shield, MessageSquare, FileCheck, ChevronRight, ChevronDown, ArrowRight, Zap, X,
+      FileText, CheckCircle, Send, Search, Lock, Sun, Moon, Menu, BarChart, Printer,
+      Download, List, AlertCircle, Clock, ExternalLink, Keyboard } = Icons;
+
+    // ─── Constants ─────────────────────────────────────────────────
+    const GOOGLE_DOC_ID = '1lRhOh_Ji2jWlI7BUEo32GGskDAqFEmQp';
+    const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+
+    // ─── Utilities ─────────────────────────────────────────────────
+    function sanitize(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function debounce(fn, ms) {
+      let t;
+      return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+    }
+
+    function normalize(q) {
+      return (q || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    function generateSessionId() {
+      return 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+    }
+
+    // ─── Toast System ──────────────────────────────────────────────
+    let toastId = 0;
+    function showToast(message, type = 'info', duration = 4000) {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const id = ++toastId;
+      const colors = {
+        success: 'bg-emerald-500', error: 'bg-red-500',
+        info: 'bg-cyan-500', warning: 'bg-amber-500'
+      };
+      const toast = document.createElement('div');
+      toast.id = `toast-${id}`;
+      toast.className = `${colors[type] || colors.info} text-white px-4 py-3 rounded-xl shadow-lg text-sm font-medium flex items-center gap-2 animate-slide-down`;
+      toast.innerHTML = `<span>${sanitize(message)}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, duration);
+    }
+
+    // ─── Skeleton Loader ───────────────────────────────────────────
+    function Skeleton({ className = '', count = 1 }) {
+      return Array.from({ length: count }).map((_, i) => (
+        <div key={i} className={`skeleton rounded-lg ${className}`} aria-hidden="true" />
+      ));
+    }
+
+    // ─── Error Boundary ────────────────────────────────────────────
+    class ErrorBoundary extends React.Component {
+      constructor(props) { super(props); this.state = { hasError: false, error: null }; }
+      static getDerivedStateFromError(error) { return { hasError: true, error }; }
+      componentDidCatch(error, info) { console.error('ErrorBoundary caught:', error, info); }
+      render() {
+        if (this.state.hasError) {
+          return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-6">
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 max-w-md text-center shadow-xl border border-slate-200 dark:border-slate-700">
+                <AlertCircle className="mx-auto text-red-500 mb-4" size={48} />
+                <h2 className="text-xl font-bold mb-2 dark:text-white">Something went wrong</h2>
+                <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">An unexpected error occurred. Please refresh the page.</p>
+                <button onClick={() => window.location.reload()} className="bg-cyan-500 text-white px-6 py-2 rounded-xl font-semibold hover:bg-cyan-600 transition">
+                  Refresh Page
+                </button>
+              </div>
+            </div>
+          );
+        }
+        return this.props.children;
+      }
+    }
+
+    // ─── Agreement Engine ──────────────────────────────────────────
+    const SYNONYMS = {
+      cancel: ['cancellation','terminate','termination','quit','end','refund','deposit'],
+      payment: ['payments','invoice','billing','net','fee','charge','cost','price'],
+      late: ['late','overdue','past','due','interest','finance','charge','apr','penalty'],
+      liability: ['liability','damage','damages','responsible','responsibility','injury','slip','fall','warranty','warranties','indemnif'],
+      dispute: ['dispute','arbitration','court','lawsuit','sue','venue','jury','mediation'],
+      snow: ['snow','ice','plow','plowing','trigger','accumulation','storm','berm','salt','deice'],
+      scope: ['scope','work','change','order','extras','additional','addendum'],
+      mowing: ['mowing','mow','lawn','grass','turf','cut','trim','edge'],
+      season: ['season','term','duration','length','period','year','annual'],
+    };
+
+    function parseAgreement(text) {
+      const lines = (text || '').split(/\r?\n/);
+      const chunks = [];
+      let cur = { heading: 'INTRODUCTION', text: '' };
+      const isHeading = (t) => {
+        const s = (t || '').trim();
+        if (!s) return false;
+        if (/^(ARTICLE|SECTION)\b/i.test(s)) return true;
+        if (/^\d+(\.\d+)*\s+/.test(s)) return true;
+        if (/^[A-Z0-9][A-Z0-9\s\-:&]{8,70}$/.test(s) && s === s.toUpperCase()) return true;
+        return false;
+      };
+      for (const line of lines) {
+        const t = line.trim();
+        if (isHeading(t)) {
+          if (cur.text.trim()) chunks.push(cur);
+          cur = { heading: t, text: '' };
+        } else {
+          cur.text += line + '\n';
+        }
+      }
+      if (cur.text.trim()) chunks.push(cur);
+      return chunks.length ? chunks : [{ heading: 'AGREEMENT', text: text || '' }];
+    }
+
+    function expandTokens(question) {
+      const q = normalize(question);
+      const raw = q.split(' ').filter(Boolean);
+      const set = new Set(raw);
+      for (const [k, arr] of Object.entries(SYNONYMS)) {
+        for (const w of raw) {
+          if (w === k || arr.includes(w)) { set.add(k); arr.forEach(x => set.add(x)); }
+        }
+      }
+      return Array.from(set).filter(t => t.length >= 3).slice(0, 30);
+    }
+
+    function bestMatches(agreementText, question, top = 3) {
+      const chunks = parseAgreement(agreementText);
+      const tokens = expandTokens(question);
+      const scored = chunks.map(c => {
+        const hay = (c.heading + '\n' + c.text).toLowerCase();
+        let score = 0;
+        for (const t of tokens) {
+          const safe = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const re = new RegExp('\\b' + safe + '\\b', 'g');
+          const m = hay.match(re);
+          if (m) score += m.length;
+        }
+        return { ...c, score };
+      }).filter(x => x.score > 0).sort((a, b) => b.score - a.score);
+      return scored.slice(0, top);
+    }
+
+    function excerpt(text, limit = 900) {
+      const s = (text || '').trim().replace(/\s+/g, ' ');
+      return s.length > limit ? s.slice(0, limit) + '...' : s;
+    }
+
+    function buildTOC(text) {
+      const chunks = parseAgreement(text);
+      return chunks.map((c, i) => ({ id: i, heading: c.heading }));
+    }
+
+    // ─── Analytics Tracker ─────────────────────────────────────────
+    const analytics = {
+      sessionId: null,
+      init() {
+        this.sessionId = sessionStorage.getItem('fw_session') || generateSessionId();
+        sessionStorage.setItem('fw_session', this.sessionId);
+        this.track('page_view', { path: window.location.pathname });
+      },
+      track(event, data = {}) {
+        const payload = { event, ...data, sessionId: this.sessionId, timestamp: Date.now() };
+        const stored = JSON.parse(localStorage.getItem('fw_analytics') || '[]');
+        stored.push(payload);
+        if (stored.length > 500) stored.splice(0, stored.length - 500);
+        localStorage.setItem('fw_analytics', JSON.stringify(stored));
+        // Fire-and-forget to serverless function
+        fetch('/.netlify/functions/analytics', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).catch(() => {});
+      }
+    };
+
+    // ─── Keyboard Shortcuts Modal ──────────────────────────────────
+    function ShortcutsModal({ onClose }) {
+      const shortcuts = [
+        { key: '/', desc: 'Focus search / chat input' },
+        { key: 'Esc', desc: 'Close modal or panel' },
+        { key: 'D', desc: 'Toggle dark mode' },
+        { key: '1', desc: 'Switch to Documents tab' },
+        { key: '2', desc: 'Switch to Ask tab' },
+        { key: '?', desc: 'Show keyboard shortcuts' },
+      ];
+      return (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in" onClick={onClose} role="dialog" aria-label="Keyboard shortcuts">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-scale-in" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-2">
+                <Keyboard className="text-cyan-500" size={20} />
+                <h3 className="font-bold text-lg dark:text-white">Keyboard Shortcuts</h3>
+              </div>
+              <button onClick={onClose} className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"><X size={18} className="dark:text-slate-400" /></button>
+            </div>
+            <div className="space-y-2">
+              {shortcuts.map(s => (
+                <div key={s.key} className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                  <span className="text-sm text-slate-600 dark:text-slate-300">{s.desc}</span>
+                  <kbd className="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-2 py-1 rounded text-xs font-mono font-bold">{s.key}</kbd>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── Table of Contents Panel ───────────────────────────────────
+    function TOCPanel({ toc, onSelect, onClose }) {
+      return (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-start justify-end animate-fade-in" onClick={onClose}>
+          <div className="bg-white dark:bg-slate-800 h-full w-80 max-w-full shadow-2xl overflow-y-auto animate-slide-down" onClick={e => e.stopPropagation()} role="navigation" aria-label="Table of contents">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center sticky top-0 bg-white dark:bg-slate-800">
+              <div className="flex items-center gap-2">
+                <List className="text-cyan-500" size={18} />
+                <h3 className="font-bold dark:text-white">Table of Contents</h3>
+              </div>
+              <button onClick={onClose} className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"><X size={18} className="dark:text-slate-400" /></button>
+            </div>
+            <div className="p-2">
+              {toc.map((item, i) => (
+                <button key={i} onClick={() => { onSelect(item); onClose(); }}
+                  className="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-700 dark:text-slate-300 hover:bg-cyan-50 dark:hover:bg-slate-700 transition truncate">
+                  {item.heading}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── Document Viewer Modal ─────────────────────────────────────
+    function DocViewer({ agreementText, onClose }) {
+      const [docSearch, setDocSearch] = useState('');
+      const [showTOC, setShowTOC] = useState(false);
+      const contentRef = useRef(null);
+      const toc = useMemo(() => buildTOC(agreementText), [agreementText]);
+
+      function highlightDoc(text, query) {
+        if (!query || query.length < 2) return sanitize(text);
+        const safe = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const re = new RegExp('(' + safe + ')', 'gi');
+        return sanitize(text).replace(re, '<mark class="bg-cyan-200 dark:bg-cyan-800 text-slate-900 dark:text-cyan-100 px-0.5 rounded">$1</mark>');
+      }
+
+      const handlePrint = () => window.print();
+
+      return (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in" role="dialog" aria-label="Document viewer">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-scale-in">
+            {/* Header */}
+            <div className="flex justify-between items-center p-6 border-b border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-3">
+                <FileText className="text-cyan-500" size={24} />
+                <h2 className="font-bold text-lg dark:text-white">Master Service Agreement</h2>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setShowTOC(true)} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Table of Contents"><List size={18} className="text-slate-500 dark:text-slate-400" /></button>
+                <button onClick={handlePrint} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Print"><Printer size={18} className="text-slate-500 dark:text-slate-400" /></button>
+                <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition"><X size={22} className="dark:text-slate-400" /></button>
+              </div>
+            </div>
+
+            {/* Search */}
+            <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+              <div className="flex gap-2">
+                <div className="flex-1 relative">
+                  <input value={docSearch} onChange={e => setDocSearch(e.target.value)} placeholder="Search within agreement..."
+                    className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 pl-10 pr-3 py-2 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500 dark:text-white text-sm"
+                    aria-label="Search agreement text" />
+                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                </div>
+                {docSearch && <button onClick={() => setDocSearch('')} className="px-4 py-2 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition">Clear</button>}
+              </div>
+            </div>
+
+            {/* Content */}
+            <div ref={contentRef} className="flex-1 overflow-y-auto p-6 bg-slate-50 dark:bg-slate-900/30">
+              <div className="bg-white dark:bg-slate-800 p-8 shadow-sm border border-slate-200 dark:border-slate-700 rounded-xl text-sm whitespace-pre-wrap leading-relaxed dark:text-slate-300"
+                dangerouslySetInnerHTML={{ __html: highlightDoc(agreementText, docSearch) }} />
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800">
+              <p className="text-xs text-slate-500 dark:text-slate-400">Informational only - the signed agreement controls.</p>
+              <button onClick={onClose} className="px-6 py-2 bg-cyan-500 text-white rounded-xl font-semibold hover:bg-cyan-600 transition">Close</button>
+            </div>
+          </div>
+
+          {showTOC && <TOCPanel toc={toc} onSelect={() => {}} onClose={() => setShowTOC(false)} />}
+        </div>
+      );
+    }
+
+    // ─── Analytics Dashboard ───────────────────────────────────────
+    function AnalyticsDashboard({ onClose }) {
+      const events = JSON.parse(localStorage.getItem('fw_analytics') || '[]');
+      const views = events.filter(e => e.event === 'page_view').length;
+      const searches = events.filter(e => e.event === 'search').length;
+      const aiQueries = events.filter(e => e.event === 'ai_query').length;
+      const sessions = new Set(events.map(e => e.sessionId)).size;
+
+      const searchTerms = events.filter(e => e.event === 'search').map(e => e.query).filter(Boolean);
+      const termCounts = {};
+      searchTerms.forEach(t => { termCounts[t] = (termCounts[t] || 0) + 1; });
+      const topSearches = Object.entries(termCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+      return (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in" role="dialog" aria-label="Analytics dashboard">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto animate-scale-in">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <BarChart className="text-cyan-500" size={24} />
+                <h2 className="font-bold text-lg dark:text-white">Analytics Dashboard</h2>
+              </div>
+              <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"><X size={20} className="dark:text-slate-400" /></button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Metric Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: 'Page Views', value: views, color: 'text-cyan-500' },
+                  { label: 'Searches', value: searches, color: 'text-emerald-500' },
+                  { label: 'AI Queries', value: aiQueries, color: 'text-violet-500' },
+                  { label: 'Sessions', value: sessions, color: 'text-amber-500' },
+                ].map(m => (
+                  <div key={m.label} className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 text-center">
+                    <p className={`text-2xl font-bold ${m.color}`}>{m.value}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{m.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Top Searches */}
+              <div>
+                <h3 className="font-semibold text-sm mb-3 dark:text-white">Popular Searches</h3>
+                {topSearches.length === 0 ? (
+                  <p className="text-sm text-slate-400">No searches recorded yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {topSearches.map(([term, count]) => (
+                      <div key={term} className="flex justify-between items-center bg-slate-50 dark:bg-slate-700/50 rounded-lg px-4 py-2">
+                        <span className="text-sm dark:text-slate-300">{term}</span>
+                        <span className="text-xs font-mono text-slate-400">{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── Main App ──────────────────────────────────────────────────
+    function App() {
+      const [view, setView] = useState(() => sessionStorage.getItem('fw_view') || 'landing');
+      const [tab, setTab] = useState(() => sessionStorage.getItem('fw_tab') || 'dashboard');
+      const [mode, setMode] = useState('quick');
+      const [isTyping, setIsTyping] = useState(false);
+      const [agreementText, setAgreementText] = useState('');
+      const [agreementStatus, setAgreementStatus] = useState('loading');
+      const [chatInput, setChatInput] = useState('');
+      const [chatHistory, setChatHistory] = useState([
+        { role: 'ai', text: 'Welcome to the Freshwater Vault. Ask about your agreement terms and I\'ll show the exact clause. (Informational only \u2014 the signed agreement controls.)' }
+      ]);
+      const [showDocViewer, setShowDocViewer] = useState(false);
+      const [showShortcuts, setShowShortcuts] = useState(false);
+      const [showAnalytics, setShowAnalytics] = useState(false);
+      const [mobileMenu, setMobileMenu] = useState(false);
+      const [darkMode, setDarkMode] = useState(() => {
+        const saved = localStorage.getItem('fw_dark');
+        if (saved !== null) return saved === 'true';
+        return window.matchMedia('(prefers-color-scheme: dark)').matches;
+      });
+
+      const chatEndRef = useRef(null);
+      const chatInputRef = useRef(null);
+
+      // Persist state
+      useEffect(() => { sessionStorage.setItem('fw_view', view); }, [view]);
+      useEffect(() => { sessionStorage.setItem('fw_tab', tab); }, [tab]);
+
+      // Dark mode
+      useEffect(() => {
+        document.documentElement.classList.toggle('dark', darkMode);
+        localStorage.setItem('fw_dark', darkMode);
+      }, [darkMode]);
+
+      // Analytics init
+      useEffect(() => { analytics.init(); }, []);
+
+      // Load agreement
+      useEffect(() => {
+        const loadAgreement = async () => {
+          // Check cache first
+          const cached = localStorage.getItem('agreement_cache');
+          const cachedTime = localStorage.getItem('agreement_cache_time');
+          if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
+            setAgreementText(cached);
+            setAgreementStatus('cached');
+            return;
+          }
+
+          try {
+            const response = await fetch(`https://docs.google.com/document/d/${GOOGLE_DOC_ID}/export?format=txt`);
+            if (!response.ok) throw new Error('Fetch failed');
+            const text = await response.text();
+            setAgreementText(text);
+            setAgreementStatus('loaded');
+            localStorage.setItem('agreement_cache', text);
+            localStorage.setItem('agreement_cache_time', Date.now().toString());
+            showToast('Agreement loaded successfully', 'success');
+          } catch (err) {
+            if (cached) {
+              setAgreementText(cached);
+              setAgreementStatus('cached');
+              showToast('Using cached agreement copy', 'warning');
+            } else {
+              setAgreementText('Unable to load agreement. Please contact support.');
+              setAgreementStatus('error');
+              showToast('Failed to load agreement', 'error');
+            }
+          }
+        };
+        loadAgreement();
+      }, []);
+
+      // Scroll chat
+      useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [chatHistory, isTyping]);
+
+      // Keyboard shortcuts
+      useEffect(() => {
+        const handler = (e) => {
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+            if (e.key === 'Escape') { e.target.blur(); return; }
+            return;
+          }
+          if (e.key === '/') { e.preventDefault(); chatInputRef.current?.focus(); }
+          if (e.key === 'Escape') {
+            setShowDocViewer(false); setShowShortcuts(false);
+            setShowAnalytics(false); setMobileMenu(false);
+          }
+          if (e.key === 'd' || e.key === 'D') setDarkMode(p => !p);
+          if (e.key === '1') { setView('dashboard'); setTab('dashboard'); }
+          if (e.key === '2') { setView('dashboard'); setTab('chat'); }
+          if (e.key === '?') setShowShortcuts(true);
+        };
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
+      }, []);
+
+      // Check for admin access
+      useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('key') === 'SECRET') setShowAnalytics(true);
+      }, []);
+
+      // Register service worker
+      useEffect(() => {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        }
+      }, []);
+
+      const clientDocs = [
+        { id: 1, title: 'Master Service Agreement', signed: '2026 Season', type: 'Core Contract', status: 'active' },
+        { id: 2, title: 'Residential Snow Addendum', signed: '2026 Season', type: 'Service Specific', status: 'active' },
+        { id: 3, title: 'Mowing & Maintenance Addendum', signed: '2026 Season', type: 'Service Specific', status: 'active' },
+      ];
+
+      const pushMsg = (role, text) => setChatHistory(prev => [...prev, { role, text }]);
+
+      const handleChat = async () => {
+        const q = chatInput.trim();
+        if (!q) return;
+        pushMsg('user', q);
+        setChatInput('');
+        setIsTyping(true);
+
+        analytics.track('search', { query: q, mode });
+
+        const hits = bestMatches(agreementText, q, 3);
+        if (!hits.length) {
+          pushMsg('ai', "I couldn't locate that in the agreement text. Try keywords like: cancellation, late fee, liability, arbitration, scope, snow, mowing.");
+          setIsTyping(false);
+          return;
+        }
+
+        if (mode === 'quick') {
+          const best = hits[0];
+          pushMsg('ai', `Here you go.\n\nSOURCE: ${best.heading}\n\n"${excerpt(best.text)}"\n\n(Informational only \u2014 the signed agreement controls.)`);
+          setIsTyping(false);
+          return;
+        }
+
+        // AI Explain mode
+        analytics.track('ai_query', { query: q });
+        try {
+          const response = await fetch('/.netlify/functions/ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              question: q,
+              excerpts: hits.map(h => ({ heading: h.heading, text: excerpt(h.text, 1200) })),
+            }),
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || 'AI unavailable');
+          pushMsg('ai', data.answer);
+        } catch (e) {
+          pushMsg('ai', 'AI Explain is unavailable right now. Use Quick mode or contact Freshwater support.');
+          showToast('AI Explain unavailable', 'error');
+        } finally {
+          setIsTyping(false);
+        }
+      };
+
+      // ─── Landing View ───────────────────────────────────────────
+      if (view === 'landing') {
+        return (
+          <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 text-white relative overflow-hidden">
+            {/* Ambient background */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+              <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-float" />
+              <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '3s' }} />
+            </div>
+
+            <div className="max-w-md w-full space-y-8 text-center relative z-10 animate-fade-in">
+              <div className="flex justify-center">
+                <div className="bg-gradient-to-br from-cyan-500 to-emerald-500 p-6 rounded-3xl shadow-2xl shadow-cyan-500/20 ring-4 ring-cyan-500/10">
+                  <Shield size={56} />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h1 className="text-4xl font-black tracking-tight">
+                  Freshwater <span className="gradient-text">Vault</span>
+                </h1>
+                <p className="text-slate-400 text-lg">Document Portal + Clause Lookup</p>
+              </div>
+
+              <div className="bg-slate-800/50 backdrop-blur-xl p-8 rounded-2xl border border-slate-700/50 shadow-xl space-y-5">
+                <div className="text-sm text-slate-300 leading-relaxed">
+                  View your agreements and ask questions to locate the exact clause.
+                </div>
+
+                <div className="space-y-3">
+                  <button onClick={() => setView('dashboard')}
+                    className="w-full bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 py-4 rounded-xl font-bold transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20">
+                    Enter Portal <ArrowRight size={20} />
+                  </button>
+
+                  <button onClick={() => { setView('dashboard'); setTab('chat'); }}
+                    className="w-full bg-slate-700/50 hover:bg-slate-700 py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2 text-sm border border-slate-600/50">
+                    <Zap size={16} /> Quick Clause Lookup
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-center gap-2 text-[11px] text-slate-500">
+                  <Lock size={14} />
+                  <span>AI Explain uses a protected server key.</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center gap-4 text-[10px] text-slate-600 uppercase tracking-widest">
+                <span>Secure</span>
+                <span className="w-1 h-1 bg-slate-700 rounded-full" />
+                <span>Fast</span>
+                <span className="w-1 h-1 bg-slate-700 rounded-full" />
+                <span>Client-First</span>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // ─── Dashboard View ──────────────────────────────────────────
+      return (
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white transition-colors duration-300">
+          {/* Navigation */}
+          <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40" role="navigation" aria-label="Main navigation">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+              <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setView('landing')}>
+                <div className="bg-gradient-to-br from-cyan-500 to-emerald-500 p-2 rounded-lg shadow-sm group-hover:shadow-cyan-500/20 transition-shadow">
+                  <Shield className="text-white" size={20} />
+                </div>
+                <span className="font-black text-lg tracking-tight hidden sm:block">
+                  FRESHWATER <span className="gradient-text">VAULT</span>
+                </span>
+              </div>
+
+              {/* Desktop nav */}
+              <div className="hidden sm:flex items-center gap-2">
+                <button onClick={() => setTab('dashboard')}
+                  className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${tab === 'dashboard' ? 'bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                  Documents
+                </button>
+                <button onClick={() => setTab('chat')}
+                  className={`px-4 py-2 rounded-lg font-semibold text-sm transition flex items-center gap-2 ${tab === 'chat' ? 'bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                  <MessageSquare size={16} /> Ask
+                </button>
+                <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1" />
+                <button onClick={() => setDarkMode(p => !p)} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Toggle dark mode" aria-label="Toggle dark mode">
+                  {darkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-slate-500" />}
+                </button>
+                <button onClick={() => setShowShortcuts(true)} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Keyboard shortcuts" aria-label="Show keyboard shortcuts">
+                  <Keyboard size={18} className="text-slate-500 dark:text-slate-400" />
+                </button>
+              </div>
+
+              {/* Mobile menu button */}
+              <button onClick={() => setMobileMenu(p => !p)} className="sm:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Toggle menu">
+                <Menu size={22} className="dark:text-slate-400" />
+              </button>
+            </div>
+
+            {/* Mobile menu */}
+            {mobileMenu && (
+              <div className="sm:hidden border-t border-slate-200 dark:border-slate-800 p-3 space-y-1 animate-slide-down">
+                <button onClick={() => { setTab('dashboard'); setMobileMenu(false); }} className="w-full text-left px-4 py-3 rounded-lg text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-300">Documents</button>
+                <button onClick={() => { setTab('chat'); setMobileMenu(false); }} className="w-full text-left px-4 py-3 rounded-lg text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-300 flex items-center gap-2"><MessageSquare size={16} /> Ask</button>
+                <button onClick={() => setDarkMode(p => !p)} className="w-full text-left px-4 py-3 rounded-lg text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-300 flex items-center gap-2">
+                  {darkMode ? <><Sun size={16} /> Light Mode</> : <><Moon size={16} /> Dark Mode</>}
+                </button>
+              </div>
+            )}
+          </nav>
+
+          <main className="max-w-6xl mx-auto p-4 sm:p-6">
+            {tab === 'dashboard' ? (
+              <div className="space-y-8 animate-fade-in">
+                {/* Hero Banner */}
+                <div className="bg-gradient-to-r from-cyan-600 via-cyan-500 to-emerald-500 text-white rounded-2xl p-6 sm:p-8 shadow-lg shadow-cyan-500/10 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiLz48L3N2Zz4=')] opacity-50" aria-hidden="true" />
+                  <div className="relative z-10">
+                    <h2 className="text-2xl sm:text-3xl font-bold mb-1">Welcome to your Portal</h2>
+                    <p className="text-cyan-100 text-sm mt-2">View documents, search clauses, and get instant answers.</p>
+                    <div className="flex flex-wrap gap-3 mt-4">
+                      <div className="flex items-center gap-2 text-sm bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                        <CheckCircle size={14} />
+                        <span>{agreementStatus === 'loaded' ? 'Live Sync' : agreementStatus === 'cached' ? 'Cached Copy' : 'Loading...'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                        <Clock size={14} />
+                        <span>Updated {agreementStatus === 'loaded' ? 'just now' : 'recently'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Document Cards */}
+                {agreementStatus === 'loading' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[1,2,3].map(i => (
+                      <div key={i} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <Skeleton className="h-12 w-12 mb-4" />
+                        <Skeleton className="h-5 w-3/4 mb-2" />
+                        <Skeleton className="h-4 w-1/2 mb-4" />
+                        <Skeleton className="h-3 w-full" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {clientDocs.map((doc, i) => (
+                      <div key={doc.id} onClick={() => setShowDocViewer(true)}
+                        className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-lg hover:border-cyan-300 dark:hover:border-cyan-600 transition-all duration-300 cursor-pointer group animate-slide-up"
+                        style={{ animationDelay: `${i * 100}ms` }}
+                        role="button" tabIndex={0} aria-label={`View ${doc.title}`}
+                        onKeyDown={e => e.key === 'Enter' && setShowDocViewer(true)}>
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="bg-cyan-50 dark:bg-cyan-500/10 p-3 rounded-xl text-cyan-600 dark:text-cyan-400 group-hover:scale-110 transition-transform"><FileCheck size={24} /></div>
+                          <span className="text-xs px-2 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 rounded-full font-medium">Active</span>
+                        </div>
+                        <h3 className="font-bold text-lg mb-1 dark:text-white">{doc.title}</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{doc.type}</p>
+                        <div className="flex items-center justify-between text-xs text-slate-400">
+                          <span>Season: {doc.signed}</span>
+                          <ChevronRight className="text-slate-300 dark:text-slate-600 group-hover:text-cyan-500 group-hover:translate-x-1 transition-all" size={16} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* CTA Card */}
+                <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 relative overflow-hidden shadow-sm">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-cyan-500/5 to-transparent rounded-bl-full" aria-hidden="true" />
+                  <div className="relative z-10 max-w-xl">
+                    <div className="flex items-center gap-2 mb-3 text-cyan-500">
+                      <Zap size={24} />
+                      <span className="text-xs font-bold uppercase tracking-wider">Clause Finder</span>
+                    </div>
+                    <h3 className="text-2xl font-bold mb-3 dark:text-white">Ask and get the exact clause.</h3>
+                    <p className="text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+                      Quick mode is free (local search). AI Explain gives a plain-English answer using a protected server key.
+                    </p>
+                    <button onClick={() => setTab('chat')}
+                      className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-xl font-bold hover:bg-slate-800 dark:hover:bg-slate-100 transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2 shadow-sm">
+                      Open Assistant <ArrowRight size={18} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Disclaimer */}
+                <p className="text-center text-xs text-slate-400 dark:text-slate-600">Informational only - the signed agreement controls.</p>
+              </div>
+            ) : (
+              /* ─── Chat Tab ─────────────────────────────────── */
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 h-[76vh] flex flex-col overflow-hidden animate-fade-in">
+                {/* Chat Header */}
+                <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-gradient-to-br from-cyan-500 to-emerald-500 p-2 rounded-lg text-white"><Zap size={20} /></div>
+                    <div>
+                      <h3 className="font-bold text-sm dark:text-white">Contract Assistant</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Find clauses + explain terms (informational only)</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setMode('quick')}
+                      className={`px-3 py-2 rounded-lg text-xs font-bold transition ${mode === 'quick' ? 'bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-sm' : 'bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600'}`}
+                      title="Free: local clause search">
+                      Quick
+                    </button>
+                    <button onClick={() => setMode('ai')}
+                      className={`px-3 py-2 rounded-lg text-xs font-bold transition ${mode === 'ai' ? 'bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-sm' : 'bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600'}`}
+                      title="Uses protected server key">
+                      AI Explain
+                    </button>
+                  </div>
+                </div>
+
+                {/* Chat Messages */}
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 no-scrollbar" role="log" aria-label="Chat messages">
+                  {chatHistory.map((msg, i) => (
+                    <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-slide-up`}>
+                      <div className={`max-w-[88%] sm:max-w-[80%] p-4 rounded-2xl text-sm whitespace-pre-wrap leading-relaxed ${
+                        msg.role === 'user'
+                          ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-tr-sm shadow-sm'
+                          : 'bg-slate-100 dark:bg-slate-700/50 text-slate-800 dark:text-slate-200 rounded-tl-sm'
+                      }`}>
+                        {msg.text}
+                      </div>
+                    </div>
+                  ))}
+                  {isTyping && (
+                    <div className="flex justify-start">
+                      <div className="bg-slate-100 dark:bg-slate-700/50 px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-2">
+                        <div className="flex gap-1">
+                          <span className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <span className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <span className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                        </div>
+                        <span className="text-xs text-slate-400 ml-1">Analyzing agreement...</span>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={chatEndRef} />
+                </div>
+
+                {/* Chat Input */}
+                <div className="p-4 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800">
+                  <div className="flex gap-2">
+                    <input ref={chatInputRef} type="text" value={chatInput}
+                      onChange={e => setChatInput(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleChat()}
+                      placeholder='Example: "If I cancel mid-season, what do I owe?"'
+                      className="flex-1 bg-slate-50 dark:bg-slate-900 p-3 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500 text-sm dark:text-white dark:placeholder-slate-500 border border-transparent focus:border-cyan-500 transition"
+                      aria-label="Type your question about the agreement" />
+                    <button onClick={handleChat}
+                      className="bg-gradient-to-r from-cyan-500 to-emerald-500 text-white p-3 rounded-xl hover:from-cyan-400 hover:to-emerald-400 transition-all transform active:scale-95 shadow-sm disabled:opacity-50"
+                      disabled={isTyping} title="Ask" aria-label="Send question">
+                      <Send size={20} />
+                    </button>
+                  </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                      <span className="font-semibold">Note:</span> Quick mode is free. AI Explain uses a server function.
+                    </span>
+                    <kbd className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded font-mono">/</kbd>
+                  </div>
+                </div>
+              </div>
+            )}
+          </main>
+
+          {/* Modals */}
+          {showDocViewer && <DocViewer agreementText={agreementText} onClose={() => setShowDocViewer(false)} />}
+          {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
+          {showAnalytics && <AnalyticsDashboard onClose={() => setShowAnalytics(false)} />}
+        </div>
+      );
+    }
+
+    // ─── Mount ─────────────────────────────────────────────────────
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    );
+  </script>
+</body>
+</html>
