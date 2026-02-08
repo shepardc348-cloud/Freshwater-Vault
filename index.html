@@ -8,8 +8,8 @@
   <meta name="theme-color" content="#0f172a" />
 
   <!-- PWA -->
-  <link rel="manifest" href="/manifest.json" />
-  <link rel="apple-touch-icon" href="/public/assets/icons/icon-192.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="public/assets/icons/icon-192.png" />
 
   <!-- Preconnect -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -59,8 +59,8 @@
     };
   </script>
 
-  <link rel="stylesheet" href="/src/css/main.css" />
-  <link rel="stylesheet" href="/src/css/themes.css" />
+  <link rel="stylesheet" href="src/css/main.css" />
+  <link rel="stylesheet" href="src/css/themes.css" />
 
   <style>
     /* Critical inline styles */
@@ -686,7 +686,7 @@
       // Register service worker
       useEffect(() => {
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('/sw.js').catch(() => {});
+          navigator.serviceWorker.register('sw.js').catch(() => {});
         }
       }, []);
 
