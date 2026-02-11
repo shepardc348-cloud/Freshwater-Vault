@@ -137,24 +137,80 @@
     // ─── Constants ─────────────────────────────────────────────────
     const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
 
+    // ─── Client Types & Access Control ─────────────────────────────
+    // PIN codes for gated portals. Change per client for white-glove access.
+    // Residential is open (no PIN). Commercial/HOA/Municipal require PIN.
+    const ACCESS_PINS = {
+      commercial: '0000',   // Change per commercial client
+      hoa: '0000',          // Change per HOA client
+      municipal: '0000',    // Change per municipal client
+    };
+
+    const CLIENT_TYPES = {
+      residential: {
+        label: 'Residential',
+        icon: '\u{1F3E0}',
+        tagline: 'Freshwater Service Property',
+        welcome: 'Welcome back, Valued Client!',
+        gated: false,
+        gradient: 'from-cyan-500 to-emerald-500',
+        shadowColor: 'shadow-cyan-500/20',
+      },
+      commercial: {
+        label: 'Commercial Business',
+        icon: '\u{1F3E2}',
+        tagline: 'Freshwater Partner Portal',
+        welcome: 'Welcome back, Valued Partner!',
+        gated: true,
+        gradient: 'from-emerald-500 to-cyan-500',
+        shadowColor: 'shadow-emerald-500/20',
+      },
+      hoa: {
+        label: 'HOA / Townhomes',
+        icon: '\u{1F3D8}\u{FE0F}',
+        tagline: 'HOA Compliance Dashboard',
+        welcome: 'Welcome back, Property Manager!',
+        gated: true,
+        gradient: 'from-violet-500 to-cyan-500',
+        shadowColor: 'shadow-violet-500/20',
+      },
+      municipal: {
+        label: 'Municipal / City',
+        icon: '\u{1F3DB}\u{FE0F}',
+        tagline: 'Municipal Compliance Dashboard',
+        welcome: 'Welcome back, City Partner!',
+        gated: true,
+        gradient: 'from-amber-500 to-cyan-500',
+        shadowColor: 'shadow-amber-500/20',
+      },
+    };
+
     // Document registry — add Google Doc IDs here as you upload them
-    // To add a new doc: upload .docx to Google Drive, open with Google Docs,
-    // share as "Anyone with link > Viewer", copy the Doc ID from the URL
     const DOCUMENTS = {
+      // ─── Shared (shown to ALL client types) ───
       msa: {
         id: 'msa',
         title: 'Master Service Agreement',
         type: 'Core Contract',
         season: '2026 Season',
         googleDocId: '1lRhOh_Ji2jWlI7BUEo32GGskDAqFEmQp',
-        audience: ['residential', 'commercial'], // shown to both
+        audience: ['residential', 'commercial', 'hoa', 'municipal'],
       },
+      subscription: {
+        id: 'subscription',
+        title: 'Subscription Services Addendum',
+        type: 'Service Specific',
+        season: '2026 Season',
+        googleDocId: '', // ADD DOC ID WHEN UPLOADED
+        audience: ['commercial', 'hoa', 'municipal'],
+      },
+      // ─── Residential ───
       residential_snow: {
         id: 'residential_snow',
         title: 'Residential Snow Addendum',
         type: 'Service Specific',
         season: '2026 Season',
-        googleDocId: '', // ADD DOC ID WHEN UPLOADED
+        googleDocId: '16lDZ0gdz4XQuPSrDntti6aSGSLa_1PJR',
         audience: ['residential'],
       },
       mowing: {
@@ -162,9 +218,10 @@
         title: 'Mowing & Maintenance Addendum',
         type: 'Service Specific',
         season: '2026 Season',
-        googleDocId: '', // ADD DOC ID WHEN UPLOADED
+        googleDocId: '1QWl4yVbwopuv18cDf-x6_ky-mnPXNQVX',
         audience: ['residential'],
       },
+      // ─── Commercial ───
       commercial_snow: {
         id: 'commercial_snow',
         title: 'Commercial Snow Agreement',
@@ -173,15 +230,48 @@
         googleDocId: '', // ADD DOC ID WHEN UPLOADED
         audience: ['commercial'],
       },
-      subscription: {
-        id: 'subscription',
-        title: 'Subscription Services Addendum',
+      // ─── HOA ───
+      hoa_snow: {
+        id: 'hoa_snow',
+        title: 'HOA Snow & Ice Management',
         type: 'Service Specific',
         season: '2026 Season',
         googleDocId: '', // ADD DOC ID WHEN UPLOADED
-        audience: ['commercial'],
+        audience: ['hoa'],
+      },
+      hoa_grounds: {
+        id: 'hoa_grounds',
+        title: 'HOA Grounds Maintenance',
+        type: 'Service Specific',
+        season: '2026 Season',
+        googleDocId: '', // ADD DOC ID WHEN UPLOADED
+        audience: ['hoa'],
+      },
+      // ─── Municipal ───
+      municipal_snow: {
+        id: 'municipal_snow',
+        title: 'Municipal Snow & Ice Services',
+        type: 'Service Specific',
+        season: '2026 Season',
+        googleDocId: '', // ADD DOC ID WHEN UPLOADED
+        audience: ['municipal'],
+      },
+      municipal_grounds: {
+        id: 'municipal_grounds',
+        title: 'Municipal Grounds & Parks',
+        type: 'Service Specific',
+        season: '2026 Season',
+        googleDocId: '', // ADD DOC ID WHEN UPLOADED
+        audience: ['municipal'],
       },
     };
+
+    // Compliance packet links for Municipal (W-9, COI, Secretary of State)
+    const COMPLIANCE_PACKET = [
+      { name: 'W-9 Form', url: '', icon: '\u{1F4C4}' },                // ADD LINK
+      { name: 'Insurance COI', url: '', icon: '\u{1F6E1}\u{FE0F}' },   // ADD LINK
+      { name: 'MN Secretary of State Filing', url: '', icon: '\u{1F3DB}\u{FE0F}' }, // ADD LINK
+    ];
 
     // ─── Utilities ─────────────────────────────────────────────────
     function sanitize(str) {
@@ -539,11 +629,182 @@
       );
     }
 
+    // ─── PIN Gate Component (Mobile-Friendly Keypad) ─────────────
+    function PinGate({ clientType, onSuccess, onCancel }) {
+      const [pin, setPin] = useState(['', '', '', '']);
+      const [error, setError] = useState('');
+      const [shake, setShake] = useState(false);
+      const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
+      const config = CLIENT_TYPES[clientType];
+
+      useEffect(() => {
+        inputRefs[0].current?.focus();
+      }, []);
+
+      const handleDigit = (digit) => {
+        const idx = pin.findIndex(d => d === '');
+        if (idx === -1) return;
+        const newPin = [...pin];
+        newPin[idx] = digit;
+        setPin(newPin);
+        setError('');
+
+        if (idx === 3) {
+          // All 4 digits entered - verify
+          const entered = newPin.join('');
+          const correct = ACCESS_PINS[clientType] || '0000';
+          if (entered === correct) {
+            sessionStorage.setItem(`fw_auth_${clientType}`, 'true');
+            onSuccess();
+          } else {
+            setShake(true);
+            setError('Invalid access code');
+            setTimeout(() => { setPin(['', '', '', '']); setShake(false); }, 600);
+          }
+        } else {
+          inputRefs[idx + 1]?.current?.focus();
+        }
+      };
+
+      const handleBackspace = () => {
+        const idx = pin.findLastIndex(d => d !== '');
+        if (idx === -1) return;
+        const newPin = [...pin];
+        newPin[idx] = '';
+        setPin(newPin);
+        inputRefs[idx]?.current?.focus();
+      };
+
+      const handleKeyDown = (e, idx) => {
+        if (e.key === 'Backspace') { e.preventDefault(); handleBackspace(); }
+        if (/^\d$/.test(e.key)) { e.preventDefault(); handleDigit(e.key); }
+        if (e.key === 'Escape') onCancel();
+      };
+
+      return (
+        <div className="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-6 animate-fade-in">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+            <div className="absolute top-1/3 left-1/3 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
+          </div>
+
+          <div className="max-w-sm w-full text-center relative z-10 space-y-6">
+            {/* Header */}
+            <div>
+              <div className={`inline-flex bg-gradient-to-br ${config.gradient} p-4 rounded-2xl shadow-lg mb-4`}>
+                <Lock className="text-white" size={32} />
+              </div>
+              <h2 className="text-2xl font-black text-white">Secure Access</h2>
+              <p className="text-slate-400 text-sm mt-1">{config.label} Partner Portal</p>
+            </div>
+
+            {/* PIN Display */}
+            <div className={`flex justify-center gap-3 ${shake ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}>
+              {pin.map((digit, i) => (
+                <div key={i} className="relative">
+                  <input
+                    ref={inputRefs[i]}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    readOnly
+                    onKeyDown={(e) => handleKeyDown(e, i)}
+                    className={`w-14 h-16 text-center text-2xl font-bold rounded-xl border-2 bg-slate-800 text-white outline-none transition-all ${
+                      digit ? 'border-cyan-500 shadow-lg shadow-cyan-500/20' : 'border-slate-700'
+                    } focus:border-cyan-400`}
+                    aria-label={`PIN digit ${i + 1}`}
+                  />
+                  {digit && <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-3 h-3 bg-cyan-400 rounded-full" />
+                  </div>}
+                </div>
+              ))}
+            </div>
+
+            {error && <p className="text-red-400 text-sm font-medium animate-slide-up">{error}</p>}
+
+            {/* Numpad (mobile-friendly) */}
+            <div className="grid grid-cols-3 gap-2 max-w-[240px] mx-auto">
+              {[1,2,3,4,5,6,7,8,9].map(n => (
+                <button key={n} onClick={() => handleDigit(String(n))}
+                  className="h-14 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-white text-xl font-bold transition-all active:scale-95 border border-slate-700">
+                  {n}
+                </button>
+              ))}
+              <button onClick={onCancel}
+                className="h-14 rounded-xl bg-slate-800/50 hover:bg-slate-700 text-slate-400 text-sm font-semibold transition border border-slate-700/50">
+                Back
+              </button>
+              <button onClick={() => handleDigit('0')}
+                className="h-14 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-white text-xl font-bold transition-all active:scale-95 border border-slate-700">
+                0
+              </button>
+              <button onClick={handleBackspace}
+                className="h-14 rounded-xl bg-slate-800/50 hover:bg-slate-700 text-slate-400 text-lg transition border border-slate-700/50 flex items-center justify-center">
+                <X size={20} />
+              </button>
+            </div>
+
+            <p className="text-[11px] text-slate-600">Enter your 4-digit client access code</p>
+          </div>
+
+          <style>{`
+            @keyframes shake {
+              0%, 100% { transform: translateX(0); }
+              10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+              20%, 40%, 60%, 80% { transform: translateX(4px); }
+            }
+          `}</style>
+        </div>
+      );
+    }
+
+    // ─── Compliance Packet Component (Municipal) ───────────────────
+    function CompliancePacket() {
+      return (
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm animate-slide-up">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="bg-amber-50 dark:bg-amber-500/10 p-2 rounded-xl">
+              <Download className="text-amber-600 dark:text-amber-400" size={20} />
+            </div>
+            <div>
+              <h3 className="font-bold dark:text-white">Compliance Packet</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">One-click download for city clerks</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            {COMPLIANCE_PACKET.map((item, i) => (
+              <a key={i}
+                href={item.url || '#'}
+                target="_blank" rel="noopener noreferrer"
+                className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+                  item.url
+                    ? 'border-slate-200 dark:border-slate-600 hover:border-amber-300 dark:hover:border-amber-600 hover:shadow-sm cursor-pointer'
+                    : 'border-dashed border-slate-300 dark:border-slate-600 opacity-50 cursor-not-allowed'
+                }`}>
+                <div className="flex items-center gap-3">
+                  <span className="text-lg">{item.icon}</span>
+                  <span className="text-sm font-medium dark:text-slate-300">{item.name}</span>
+                </div>
+                {item.url ? (
+                  <Download size={16} className="text-amber-500" />
+                ) : (
+                  <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-full">Coming</span>
+                )}
+              </a>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
     // ─── Main App ──────────────────────────────────────────────────
     function App() {
       const [view, setView] = useState(() => sessionStorage.getItem('fw_view') || 'landing');
       const [tab, setTab] = useState(() => sessionStorage.getItem('fw_tab') || 'dashboard');
-      const [clientType, setClientType] = useState(() => sessionStorage.getItem('fw_client_type') || null); // 'residential' | 'commercial'
+      const [clientType, setClientType] = useState(() => sessionStorage.getItem('fw_client_type') || null);
+      const [pendingType, setPendingType] = useState(null); // type waiting for PIN
+      const [showPinGate, setShowPinGate] = useState(false);
       const [mode, setMode] = useState('quick');
       const [isTyping, setIsTyping] = useState(false);
       const [docTexts, setDocTexts] = useState({}); // { docId: text }
@@ -570,6 +831,44 @@
       useEffect(() => { sessionStorage.setItem('fw_view', view); }, [view]);
       useEffect(() => { sessionStorage.setItem('fw_tab', tab); }, [tab]);
       useEffect(() => { if (clientType) sessionStorage.setItem('fw_client_type', clientType); }, [clientType]);
+
+      // SEO: Add noindex for gated pages
+      useEffect(() => {
+        let meta = document.querySelector('meta[name="robots"]');
+        if (clientType && clientType !== 'residential') {
+          if (!meta) { meta = document.createElement('meta'); meta.name = 'robots'; document.head.appendChild(meta); }
+          meta.content = 'noindex, nofollow';
+        } else if (meta) {
+          meta.remove();
+        }
+      }, [clientType]);
+
+      // Handler: client type selection from landing page
+      const handleClientSelect = (type) => {
+        const config = CLIENT_TYPES[type];
+        if (!config) return;
+        if (config.gated) {
+          // Check if already authenticated this session
+          if (sessionStorage.getItem(`fw_auth_${type}`) === 'true') {
+            setClientType(type);
+            setView('dashboard');
+          } else {
+            setPendingType(type);
+            setShowPinGate(true);
+          }
+        } else {
+          setClientType(type);
+          setView('dashboard');
+        }
+      };
+
+      const handlePinSuccess = () => {
+        setShowPinGate(false);
+        setClientType(pendingType);
+        setPendingType(null);
+        setView('dashboard');
+        showToast(`Welcome to the ${CLIENT_TYPES[pendingType]?.label} Portal`, 'success');
+      };
 
       // Dark mode
       useEffect(() => {
@@ -742,17 +1041,19 @@
       // ─── Landing View ───────────────────────────────────────────
       if (view === 'landing') {
         return (
-          <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 text-white relative overflow-hidden">
+          <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 text-white relative overflow-hidden">
             {/* Ambient background */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-              <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-float" />
-              <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '3s' }} />
+              <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl animate-float" />
+              <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl animate-float" style={{ animationDelay: '3s' }} />
+              <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-violet-500/5 rounded-full blur-3xl animate-float" style={{ animationDelay: '5s' }} />
             </div>
 
-            <div className="max-w-md w-full space-y-8 text-center relative z-10 animate-fade-in">
+            <div className="max-w-lg w-full space-y-8 text-center relative z-10 animate-fade-in">
+              {/* Shield + Branding */}
               <div className="flex justify-center">
-                <div className="bg-gradient-to-br from-cyan-500 to-emerald-500 p-6 rounded-3xl shadow-2xl shadow-cyan-500/20 ring-4 ring-cyan-500/10">
-                  <Shield size={56} />
+                <div className="bg-gradient-to-br from-cyan-500 to-emerald-500 p-5 rounded-3xl shadow-2xl shadow-cyan-500/20 ring-4 ring-cyan-500/10">
+                  <Shield size={48} />
                 </div>
               </div>
 
@@ -760,47 +1061,79 @@
                 <h1 className="text-4xl font-black tracking-tight">
                   Freshwater <span className="gradient-text">Vault</span>
                 </h1>
-                <p className="text-slate-400 text-lg">Document Portal + Clause Lookup</p>
+                <p className="text-slate-400">Secure Partner Portal</p>
               </div>
 
-              <div className="bg-slate-800/50 backdrop-blur-xl p-8 rounded-2xl border border-slate-700/50 shadow-xl space-y-5">
+              {/* Portal Selection */}
+              <div className="bg-slate-800/50 backdrop-blur-xl p-6 sm:p-8 rounded-2xl border border-slate-700/50 shadow-xl space-y-5">
                 <div className="text-sm text-slate-300 leading-relaxed">
-                  View your agreements and ask questions to locate the exact clause.
+                  Access your agreements, compliance documents, and AI-powered clause lookup.
                 </div>
 
-                <div className="space-y-3">
-                  <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider text-center">Select your account type</p>
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Select your portal</p>
 
-                  <button onClick={() => { setClientType('residential'); setView('dashboard'); }}
-                    className="w-full bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 py-4 rounded-xl font-bold transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 shadow-lg shadow-cyan-500/20">
-                    <span className="text-lg">🏠</span> Residential Client <ArrowRight size={18} />
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Residential - Open */}
+                  <button onClick={() => handleClientSelect('residential')}
+                    className="group bg-slate-700/50 hover:bg-gradient-to-br hover:from-cyan-500/20 hover:to-emerald-500/20 border border-slate-600/50 hover:border-cyan-500/50 p-4 rounded-xl transition-all duration-300 transform hover:scale-[1.03] active:scale-[0.97]">
+                    <span className="text-2xl block mb-2">{CLIENT_TYPES.residential.icon}</span>
+                    <span className="text-sm font-bold block text-white">Residential</span>
+                    <span className="text-[10px] text-slate-500 mt-1 block">Open Access</span>
                   </button>
 
-                  <button onClick={() => { setClientType('commercial'); setView('dashboard'); }}
-                    className="w-full bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 py-4 rounded-xl font-bold transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/20">
-                    <span className="text-lg">🏢</span> Commercial Client <ArrowRight size={18} />
+                  {/* Commercial - Gated */}
+                  <button onClick={() => handleClientSelect('commercial')}
+                    className="group bg-slate-700/50 hover:bg-gradient-to-br hover:from-emerald-500/20 hover:to-cyan-500/20 border border-slate-600/50 hover:border-emerald-500/50 p-4 rounded-xl transition-all duration-300 transform hover:scale-[1.03] active:scale-[0.97]">
+                    <span className="text-2xl block mb-2">{CLIENT_TYPES.commercial.icon}</span>
+                    <span className="text-sm font-bold block text-white">Commercial</span>
+                    <span className="text-[10px] text-slate-500 mt-1 flex items-center justify-center gap-1"><Lock size={10} /> Secure</span>
                   </button>
 
-                  <button onClick={() => { setView('dashboard'); setTab('chat'); setClientType(clientType || 'residential'); }}
-                    className="w-full bg-slate-700/50 hover:bg-slate-700 py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2 text-sm border border-slate-600/50">
-                    <Zap size={16} /> Quick Clause Lookup
+                  {/* HOA - Gated */}
+                  <button onClick={() => handleClientSelect('hoa')}
+                    className="group bg-slate-700/50 hover:bg-gradient-to-br hover:from-violet-500/20 hover:to-cyan-500/20 border border-slate-600/50 hover:border-violet-500/50 p-4 rounded-xl transition-all duration-300 transform hover:scale-[1.03] active:scale-[0.97]">
+                    <span className="text-2xl block mb-2">{CLIENT_TYPES.hoa.icon}</span>
+                    <span className="text-sm font-bold block text-white">HOA / Townhomes</span>
+                    <span className="text-[10px] text-slate-500 mt-1 flex items-center justify-center gap-1"><Lock size={10} /> Secure</span>
+                  </button>
+
+                  {/* Municipal - Gated */}
+                  <button onClick={() => handleClientSelect('municipal')}
+                    className="group bg-slate-700/50 hover:bg-gradient-to-br hover:from-amber-500/20 hover:to-cyan-500/20 border border-slate-600/50 hover:border-amber-500/50 p-4 rounded-xl transition-all duration-300 transform hover:scale-[1.03] active:scale-[0.97]">
+                    <span className="text-2xl block mb-2">{CLIENT_TYPES.municipal.icon}</span>
+                    <span className="text-sm font-bold block text-white">Municipal / City</span>
+                    <span className="text-[10px] text-slate-500 mt-1 flex items-center justify-center gap-1"><Lock size={10} /> Secure</span>
                   </button>
                 </div>
 
-                <div className="flex items-center justify-center gap-2 text-[11px] text-slate-500">
-                  <Lock size={14} />
-                  <span>AI Explain uses a protected server key.</span>
+                <div className="flex items-center justify-center gap-2 text-[11px] text-slate-600">
+                  <Lock size={12} />
+                  <span>Commercial, HOA & Municipal portals require an access code</span>
                 </div>
               </div>
 
               <div className="flex items-center justify-center gap-4 text-[10px] text-slate-600 uppercase tracking-widest">
-                <span>Secure</span>
+                <span>Encrypted</span>
                 <span className="w-1 h-1 bg-slate-700 rounded-full" />
-                <span>Fast</span>
+                <span>Confidential</span>
                 <span className="w-1 h-1 bg-slate-700 rounded-full" />
                 <span>Client-First</span>
               </div>
             </div>
+
+            {/* Footer */}
+            <footer className="absolute bottom-0 left-0 right-0 py-4 text-center">
+              <p className="text-[10px] text-slate-700">&copy; 2024&ndash;2026 Freshwater Landscaping LLC. All Rights Reserved. Confidential &amp; Proprietary.</p>
+            </footer>
+
+            {/* PIN Gate Overlay */}
+            {showPinGate && (
+              <PinGate
+                clientType={pendingType}
+                onSuccess={handlePinSuccess}
+                onCancel={() => { setShowPinGate(false); setPendingType(null); }}
+              />
+            )}
           </div>
         );
       }
@@ -860,34 +1193,41 @@
           <main className="max-w-6xl mx-auto p-4 sm:p-6">
             {tab === 'dashboard' ? (
               <div className="space-y-8 animate-fade-in">
-                {/* Hero Banner */}
-                <div className="bg-gradient-to-r from-cyan-600 via-cyan-500 to-emerald-500 text-white rounded-2xl p-6 sm:p-8 shadow-lg shadow-cyan-500/10 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiLz48L3N2Zz4=')] opacity-50" aria-hidden="true" />
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h2 className="text-2xl sm:text-3xl font-bold mb-1">Welcome to your Portal</h2>
-                        <p className="text-cyan-100 text-sm mt-2">
-                          {clientType === 'commercial' ? 'Commercial' : 'Residential'} Client Documents
-                        </p>
+                {/* Hero Banner - Dynamic per client type */}
+                {(() => {
+                  const ct = CLIENT_TYPES[clientType] || CLIENT_TYPES.residential;
+                  return (
+                    <div className={`bg-gradient-to-r ${ct.gradient} text-white rounded-2xl p-6 sm:p-8 shadow-lg ${ct.shadowColor} relative overflow-hidden`}>
+                      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDgpIi8+PC9zdmc+')] opacity-50" aria-hidden="true" />
+                      <div className="relative z-10">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="text-white/70 text-xs font-semibold uppercase tracking-wider mb-1">{ct.tagline}</p>
+                            <h2 className="text-2xl sm:text-3xl font-bold">{ct.welcome}</h2>
+                          </div>
+                          <button onClick={() => { setClientType(null); setView('landing'); }}
+                            className="text-xs bg-white/10 hover:bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full transition font-medium shrink-0 ml-4">
+                            Switch Portal
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-4">
+                          <div className="flex items-center gap-2 text-sm bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                            <CheckCircle size={14} />
+                            <span>Account Status: Active</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                            <FileCheck size={14} />
+                            <span>{visibleDocs.length} document{visibleDocs.length !== 1 ? 's' : ''}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                            <Shield size={14} />
+                            <span>{ct.label}</span>
+                          </div>
+                        </div>
                       </div>
-                      <button onClick={() => { setClientType(null); setView('landing'); }}
-                        className="text-xs bg-white/10 hover:bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full transition font-medium">
-                        Switch Type
-                      </button>
                     </div>
-                    <div className="flex flex-wrap gap-3 mt-4">
-                      <div className="flex items-center gap-2 text-sm bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                        <CheckCircle size={14} />
-                        <span>{agreementStatus === 'loaded' ? 'Live Sync' : agreementStatus === 'cached' ? 'Cached Copy' : 'Loading...'}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                        <Clock size={14} />
-                        <span>{visibleDocs.length} document{visibleDocs.length !== 1 ? 's' : ''}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  );
+                })()}
 
                 {/* Document Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -932,6 +1272,9 @@
                   })}
                 </div>
 
+                {/* Compliance Packet - Municipal only */}
+                {clientType === 'municipal' && <CompliancePacket />}
+
                 {/* CTA Card */}
                 <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 relative overflow-hidden shadow-sm">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-cyan-500/5 to-transparent rounded-bl-full" aria-hidden="true" />
@@ -951,8 +1294,11 @@
                   </div>
                 </div>
 
-                {/* Disclaimer */}
-                <p className="text-center text-xs text-slate-400 dark:text-slate-600">Informational only - the signed agreement controls.</p>
+                {/* Disclaimer + Footer */}
+                <div className="text-center space-y-2">
+                  <p className="text-xs text-slate-400 dark:text-slate-600">Informational only &mdash; the signed agreement controls.</p>
+                  <p className="text-[10px] text-slate-400/60 dark:text-slate-600/60">&copy; 2024&ndash;2026 Freshwater Landscaping LLC. All Rights Reserved. Confidential &amp; Proprietary.</p>
+                </div>
               </div>
             ) : (
               /* ─── Chat Tab ─────────────────────────────────── */
