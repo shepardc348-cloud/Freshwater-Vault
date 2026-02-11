@@ -149,45 +149,45 @@
     const CLIENT_TYPES = {
       residential: {
         label: 'Residential',
-        icon: '\u{1F3E0}',
         tagline: 'Freshwater Service Property',
         welcome: 'Welcome back, Valued Client!',
         gated: false,
         gradient: 'from-cyan-500 to-emerald-500',
         shadowColor: 'shadow-cyan-500/20',
+        accentColor: 'text-cyan-400',
       },
       commercial: {
         label: 'Commercial Business',
-        icon: '\u{1F3E2}',
         tagline: 'Freshwater Partner Portal',
         welcome: 'Welcome back, Valued Partner!',
         gated: true,
         gradient: 'from-emerald-500 to-cyan-500',
         shadowColor: 'shadow-emerald-500/20',
+        accentColor: 'text-emerald-400',
       },
       hoa: {
         label: 'HOA / Townhomes',
-        icon: '\u{1F3D8}\u{FE0F}',
         tagline: 'HOA Compliance Dashboard',
         welcome: 'Welcome back, Property Manager!',
         gated: true,
         gradient: 'from-violet-500 to-cyan-500',
         shadowColor: 'shadow-violet-500/20',
+        accentColor: 'text-violet-400',
       },
       municipal: {
         label: 'Municipal / City',
-        icon: '\u{1F3DB}\u{FE0F}',
         tagline: 'Municipal Compliance Dashboard',
         welcome: 'Welcome back, City Partner!',
         gated: true,
         gradient: 'from-amber-500 to-cyan-500',
         shadowColor: 'shadow-amber-500/20',
+        accentColor: 'text-amber-400',
       },
     };
 
     // Document registry — add Google Doc IDs here as you upload them
     const DOCUMENTS = {
-      // ─── Shared (shown to ALL client types) ───
+      // ─── Master Agreements (shared across all client types) ───
       msa: {
         id: 'msa',
         title: 'Master Service Agreement',
@@ -196,81 +196,22 @@
         googleDocId: '1lRhOh_Ji2jWlI7BUEo32GGskDAqFEmQp',
         audience: ['residential', 'commercial', 'hoa', 'municipal'],
       },
+      // ─── Commercial / HOA / Municipal ───
       subscription: {
         id: 'subscription',
         title: 'Subscription Services Addendum',
-        type: 'Service Specific',
+        type: 'Service Addendum',
         season: '2026 Season',
         googleDocId: '', // ADD DOC ID WHEN UPLOADED
         audience: ['commercial', 'hoa', 'municipal'],
-      },
-      // ─── Residential ───
-      residential_snow: {
-        id: 'residential_snow',
-        title: 'Residential Snow Addendum',
-        type: 'Service Specific',
-        season: '2026 Season',
-        googleDocId: '', // NEEDS CORRECT DOC ID - previous ID was duplicate of MSA
-        audience: ['residential'],
-      },
-      mowing: {
-        id: 'mowing',
-        title: 'Mowing & Maintenance Addendum',
-        type: 'Service Specific',
-        season: '2026 Season',
-        googleDocId: '', // NEEDS CORRECT DOC ID - previous ID was Subcontractor Agreement
-        audience: ['residential'],
-      },
-      // ─── Commercial ───
-      commercial_snow: {
-        id: 'commercial_snow',
-        title: 'Commercial Snow Agreement',
-        type: 'Service Specific',
-        season: '2026 Season',
-        googleDocId: '', // ADD DOC ID WHEN UPLOADED
-        audience: ['commercial'],
-      },
-      // ─── HOA ───
-      hoa_snow: {
-        id: 'hoa_snow',
-        title: 'HOA Snow & Ice Management',
-        type: 'Service Specific',
-        season: '2026 Season',
-        googleDocId: '', // ADD DOC ID WHEN UPLOADED
-        audience: ['hoa'],
-      },
-      hoa_grounds: {
-        id: 'hoa_grounds',
-        title: 'HOA Grounds Maintenance',
-        type: 'Service Specific',
-        season: '2026 Season',
-        googleDocId: '', // ADD DOC ID WHEN UPLOADED
-        audience: ['hoa'],
-      },
-      // ─── Municipal ───
-      municipal_snow: {
-        id: 'municipal_snow',
-        title: 'Municipal Snow & Ice Services',
-        type: 'Service Specific',
-        season: '2026 Season',
-        googleDocId: '', // ADD DOC ID WHEN UPLOADED
-        audience: ['municipal'],
-      },
-      municipal_grounds: {
-        id: 'municipal_grounds',
-        title: 'Municipal Grounds & Parks',
-        type: 'Service Specific',
-        season: '2026 Season',
-        googleDocId: '', // ADD DOC ID WHEN UPLOADED
-        audience: ['municipal'],
       },
     };
 
     // Compliance packet links for Municipal (W-9, COI, Secretary of State)
     const COMPLIANCE_PACKET = [
-      { name: 'W-9 Form', url: '', icon: '\u{1F4C4}' },                // ADD LINK
-      { name: 'Insurance COI', url: '', icon: '\u{1F6E1}\u{FE0F}' },   // ADD LINK
-      { name: 'MN Secretary of State Filing', url: '', icon: '\u{1F3DB}\u{FE0F}' }, // ADD LINK
+      { name: 'W-9 Form', url: '' },                // ADD LINK
+      { name: 'Insurance COI', url: '' },            // ADD LINK
+      { name: 'MN Secretary of State Filing', url: '' }, // ADD LINK
     ];
 
     // ─── Utilities ─────────────────────────────────────────────────
@@ -783,7 +724,7 @@
                     : 'border-dashed border-slate-300 dark:border-slate-600 opacity-50 cursor-not-allowed'
                 }`}>
                 <div className="flex items-center gap-3">
-                  <span className="text-lg">{item.icon}</span>
+                  <FileText size={16} className="text-amber-500/70" />
                   <span className="text-sm font-medium dark:text-slate-300">{item.name}</span>
                 </div>
                 {item.url ? (
@@ -1073,32 +1014,40 @@
                 <div className="grid grid-cols-2 gap-3">
                   {/* Residential - Open */}
                   <button onClick={() => handleClientSelect('residential')}
-                    className="group bg-slate-700/50 hover:bg-gradient-to-br hover:from-cyan-500/20 hover:to-emerald-500/20 border border-slate-600/50 hover:border-cyan-500/50 p-4 rounded-xl transition-all duration-300 transform hover:scale-[1.03] active:scale-[0.97]">
-                    <span className="text-2xl block mb-2">{CLIENT_TYPES.residential.icon}</span>
+                    className="group bg-slate-700/50 hover:bg-gradient-to-br hover:from-cyan-500/20 hover:to-emerald-500/20 border border-slate-600/50 hover:border-cyan-500/50 p-5 rounded-xl transition-all duration-300 transform hover:scale-[1.03] active:scale-[0.97]">
+                    <div className="w-9 h-9 mx-auto mb-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center group-hover:bg-cyan-500/20 transition-colors">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    </div>
                     <span className="text-sm font-bold block text-white">Residential</span>
                     <span className="text-[10px] text-slate-500 mt-1 block">Open Access</span>
                   </button>
 
                   {/* Commercial - Gated */}
                   <button onClick={() => handleClientSelect('commercial')}
-                    className="group bg-slate-700/50 hover:bg-gradient-to-br hover:from-emerald-500/20 hover:to-cyan-500/20 border border-slate-600/50 hover:border-emerald-500/50 p-4 rounded-xl transition-all duration-300 transform hover:scale-[1.03] active:scale-[0.97]">
-                    <span className="text-2xl block mb-2">{CLIENT_TYPES.commercial.icon}</span>
+                    className="group bg-slate-700/50 hover:bg-gradient-to-br hover:from-emerald-500/20 hover:to-cyan-500/20 border border-slate-600/50 hover:border-emerald-500/50 p-5 rounded-xl transition-all duration-300 transform hover:scale-[1.03] active:scale-[0.97]">
+                    <div className="w-9 h-9 mx-auto mb-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><line x1="8" y1="6" x2="8" y2="6.01"/><line x1="12" y1="6" x2="12" y2="6.01"/><line x1="16" y1="6" x2="16" y2="6.01"/><line x1="8" y1="10" x2="8" y2="10.01"/><line x1="12" y1="10" x2="12" y2="10.01"/><line x1="16" y1="10" x2="16" y2="10.01"/><line x1="8" y1="14" x2="8" y2="14.01"/><line x1="12" y1="14" x2="12" y2="14.01"/><line x1="16" y1="14" x2="16" y2="14.01"/></svg>
+                    </div>
                     <span className="text-sm font-bold block text-white">Commercial</span>
                     <span className="text-[10px] text-slate-500 mt-1 flex items-center justify-center gap-1"><Lock size={10} /> Secure</span>
                   </button>
 
                   {/* HOA - Gated */}
                   <button onClick={() => handleClientSelect('hoa')}
-                    className="group bg-slate-700/50 hover:bg-gradient-to-br hover:from-violet-500/20 hover:to-cyan-500/20 border border-slate-600/50 hover:border-violet-500/50 p-4 rounded-xl transition-all duration-300 transform hover:scale-[1.03] active:scale-[0.97]">
-                    <span className="text-2xl block mb-2">{CLIENT_TYPES.hoa.icon}</span>
+                    className="group bg-slate-700/50 hover:bg-gradient-to-br hover:from-violet-500/20 hover:to-cyan-500/20 border border-slate-600/50 hover:border-violet-500/50 p-5 rounded-xl transition-all duration-300 transform hover:scale-[1.03] active:scale-[0.97]">
+                    <div className="w-9 h-9 mx-auto mb-3 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center group-hover:bg-violet-500/20 transition-colors">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-violet-400"><path d="M3 9l4-4 4 4"/><path d="M13 9l4-4 4 4"/><rect x="3" y="9" width="8" height="13" rx="1"/><rect x="13" y="9" width="8" height="13" rx="1"/><line x1="7" y1="13" x2="7" y2="13.01"/><line x1="7" y1="17" x2="7" y2="17.01"/><line x1="17" y1="13" x2="17" y2="13.01"/><line x1="17" y1="17" x2="17" y2="17.01"/></svg>
+                    </div>
                     <span className="text-sm font-bold block text-white">HOA / Townhomes</span>
                     <span className="text-[10px] text-slate-500 mt-1 flex items-center justify-center gap-1"><Lock size={10} /> Secure</span>
                   </button>
 
                   {/* Municipal - Gated */}
                   <button onClick={() => handleClientSelect('municipal')}
-                    className="group bg-slate-700/50 hover:bg-gradient-to-br hover:from-amber-500/20 hover:to-cyan-500/20 border border-slate-600/50 hover:border-amber-500/50 p-4 rounded-xl transition-all duration-300 transform hover:scale-[1.03] active:scale-[0.97]">
-                    <span className="text-2xl block mb-2">{CLIENT_TYPES.municipal.icon}</span>
+                    className="group bg-slate-700/50 hover:bg-gradient-to-br hover:from-amber-500/20 hover:to-cyan-500/20 border border-slate-600/50 hover:border-amber-500/50 p-5 rounded-xl transition-all duration-300 transform hover:scale-[1.03] active:scale-[0.97]">
+                    <div className="w-9 h-9 mx-auto mb-3 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-amber-400"><path d="M12 2L2 7v2h20V7L12 2z"/><rect x="4" y="9" width="4" height="11"/><rect x="10" y="9" width="4" height="11"/><rect x="16" y="9" width="4" height="11"/><line x1="2" y1="20" x2="22" y2="20"/><line x1="2" y1="22" x2="22" y2="22"/></svg>
+                    </div>
                     <span className="text-sm font-bold block text-white">Municipal / City</span>
                     <span className="text-[10px] text-slate-500 mt-1 flex items-center justify-center gap-1"><Lock size={10} /> Secure</span>
                   </button>
