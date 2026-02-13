@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Freshwater Landscaping - Client Portal</title>
   <meta name="description" content="Freshwater Landscaping client portal — secure agreement access and document management." />
-  <meta name="theme-color" content="#000000" />
+  <meta name="theme-color" content="#0f1419" />
 
   <!-- PWA -->
   <link rel="manifest" href="manifest.json" />
@@ -59,13 +59,13 @@
 
   <style>
     /* Core styles — matched to freshwaterlandscaping.com */
-    body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: #000; color: #fff; line-height: 1.6; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: #0f1419; color: #e7e9ea; line-height: 1.6; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
     /* Premium card hover glow */
-    .fw-card { background: rgba(10,10,10,0.9); border: 1px solid #222; border-radius: 12px; transition: border-color 0.3s ease, box-shadow 0.3s ease; }
-    .fw-card:hover { border-color: #0180d9; box-shadow: 0 0 20px rgba(1,128,217,0.08); }
+    .fw-card { background: #1a2028; border: 1px solid #2a3540; border-radius: 12px; transition: border-color 0.3s ease, box-shadow 0.3s ease; }
+    .fw-card:hover { border-color: #0180d9; box-shadow: 0 0 20px rgba(1,128,217,0.1); }
 
     /* Subtle blue top-line accent on hero */
     .fw-hero { position: relative; overflow: hidden; }
@@ -300,11 +300,11 @@
       render() {
         if (this.state.hasError) {
           return (
-            <div className="min-h-screen flex items-center justify-center bg-black p-6">
-              <div className="rounded-xl p-8 max-w-md text-center" style={{background:'rgba(10,10,10,0.95)', border:'1px solid #222', borderRadius:'12px'}}>
+            <div className="min-h-screen flex items-center justify-center p-6" style={{background:'#0f1419'}}>
+              <div className="rounded-xl p-8 max-w-md text-center" style={{background:'#1a2028', border:'1px solid #2a3540', borderRadius:'12px'}}>
                 <AlertCircle className="mx-auto text-red-500 mb-4" size={48} />
                 <h2 className="text-xl font-bold mb-2 text-white">Something went wrong</h2>
-                <p className="text-gray-500 text-sm mb-4">An unexpected error occurred. Please refresh the page.</p>
+                <p className="text-sm mb-4" style={{color:'#8899a6'}}>An unexpected error occurred. Please refresh the page.</p>
                 <button onClick={() => window.location.reload()} className="fw-btn text-white px-6 py-2 rounded-lg font-semibold transition"
                   style={{background:'#0180d9', borderRadius:'8px'}}>
                   Refresh Page
@@ -439,19 +439,19 @@
       ];
       return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in" onClick={onClose} role="dialog" aria-label="Keyboard shortcuts">
-          <div className="rounded-xl shadow-2xl max-w-md w-full p-6 animate-scale-in" style={{background:'#0a0a0a', border:'1px solid #222', borderRadius:'12px'}} onClick={e => e.stopPropagation()}>
+          <div className="rounded-xl shadow-2xl max-w-md w-full p-6 animate-scale-in" style={{background:'#1a2028', border:'1px solid #2a3540', borderRadius:'12px'}} onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
                 <Keyboard size={18} style={{color:'#0180d9'}} />
                 <h3 className="font-bold text-base text-white">Keyboard Shortcuts</h3>
               </div>
-              <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-800"><X size={18} className="text-gray-500" /></button>
+              <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-700/30"><X size={18} style={{color:'#8899a6'}} /></button>
             </div>
             <div className="space-y-1">
               {shortcuts.map(s => (
-                <div key={s.key} className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-800/50">
-                  <span className="text-sm text-gray-400">{s.desc}</span>
-                  <kbd className="text-gray-400 px-2 py-1 rounded text-xs font-mono font-bold" style={{background:'rgba(255,255,255,0.05)', border:'1px solid #222'}}>{s.key}</kbd>
+                <div key={s.key} className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-700/20">
+                  <span className="text-sm" style={{color:'#c4cdd5'}}>{s.desc}</span>
+                  <kbd className="px-2 py-1 rounded text-xs font-mono font-bold" style={{color:'#c4cdd5', background:'#131a22', border:'1px solid #2a3540'}}>{s.key}</kbd>
                 </div>
               ))}
             </div>
@@ -615,13 +615,13 @@
 
       return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in" role="dialog" aria-label="Analytics dashboard">
-          <div className="rounded-xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto animate-scale-in fw-scroll" style={{background:'#0a0a0a', border:'1px solid #222', borderRadius:'12px'}}>
-            <div className="p-6 border-b flex justify-between items-center" style={{borderColor:'#222'}}>
+          <div className="rounded-xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto animate-scale-in fw-scroll" style={{background:'#1a2028', border:'1px solid #2a3540', borderRadius:'12px'}}>
+            <div className="p-6 flex justify-between items-center" style={{borderBottom:'1px solid #2a3540'}}>
               <div className="flex items-center gap-3">
                 <BarChart size={22} style={{color:'#0180d9'}} />
                 <h2 className="font-bold text-lg text-white">Analytics Dashboard</h2>
               </div>
-              <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-800"><X size={20} className="text-gray-500" /></button>
+              <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-700/30"><X size={20} style={{color:'#8899a6'}} /></button>
             </div>
 
             <div className="p-6 space-y-6">
@@ -633,9 +633,9 @@
                   { label: 'AI Queries', value: aiQueries, color: '#a7e3f5' },
                   { label: 'Sessions', value: sessions, color: '#0180d9' },
                 ].map(m => (
-                  <div key={m.label} className="rounded-lg p-4 text-center" style={{background:'rgba(255,255,255,0.03)', border:'1px solid #222', borderRadius:'8px'}}>
+                  <div key={m.label} className="rounded-lg p-4 text-center" style={{background:'#131a22', border:'1px solid #2a3540', borderRadius:'8px'}}>
                     <p className="text-2xl font-bold" style={{color:m.color}}>{m.value}</p>
-                    <p className="text-xs text-gray-500 mt-1">{m.label}</p>
+                    <p className="text-xs mt-1" style={{color:'#8899a6'}}>{m.label}</p>
                   </div>
                 ))}
               </div>
@@ -644,13 +644,13 @@
               <div>
                 <h3 className="font-semibold text-sm mb-3 text-white">Popular Searches</h3>
                 {topSearches.length === 0 ? (
-                  <p className="text-sm text-gray-600">No searches recorded yet.</p>
+                  <p className="text-sm" style={{color:'#556575'}}>No searches recorded yet.</p>
                 ) : (
                   <div className="space-y-2">
                     {topSearches.map(([term, count]) => (
-                      <div key={term} className="flex justify-between items-center rounded-lg px-4 py-2" style={{background:'rgba(255,255,255,0.03)', border:'1px solid #1a1a1a'}}>
-                        <span className="text-sm text-gray-300">{term}</span>
-                        <span className="text-xs font-mono text-gray-600">{count}</span>
+                      <div key={term} className="flex justify-between items-center rounded-lg px-4 py-2" style={{background:'#131a22', border:'1px solid #2a3540'}}>
+                        <span className="text-sm" style={{color:'#c4cdd5'}}>{term}</span>
+                        <span className="text-xs font-mono" style={{color:'#556575'}}>{count}</span>
                       </div>
                     ))}
                   </div>
@@ -715,13 +715,13 @@
       };
 
       return (
-        <div className="fixed inset-0 bg-black z-50 flex items-center justify-center p-6 animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 animate-fade-in" style={{background:'#0f1419'}}>
           <div className="max-w-sm w-full text-center space-y-6">
             {/* Header */}
             <div>
               <Lock className="mx-auto mb-3" size={28} style={{color:'#0180d9'}} />
               <h2 className="text-xl font-semibold text-white">{config.label} Portal</h2>
-              <p className="text-gray-500 text-sm mt-1">Enter your access code</p>
+              <p className="text-sm mt-1" style={{color:'#8899a6'}}>Enter your access code</p>
             </div>
 
             {/* PIN Display */}
@@ -736,10 +736,10 @@
                     value={digit}
                     readOnly
                     onKeyDown={(e) => handleKeyDown(e, i)}
-                    className={`w-14 h-16 text-center text-2xl font-bold rounded-lg border-2 bg-black text-white outline-none transition-all ${
-                      digit ? 'border-blue-500' : 'border-gray-700'
+                    className={`w-14 h-16 text-center text-2xl font-bold rounded-lg border-2 text-white outline-none transition-all ${
+                      digit ? 'border-blue-500' : ''
                     } focus:border-blue-400`}
-                    style={{borderRadius:'8px'}}
+                    style={{borderRadius:'8px', background:'#1a2028', borderColor: digit ? '#0180d9' : '#2a3540'}}
                     aria-label={`PIN digit ${i + 1}`}
                   />
                   {digit && <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -755,29 +755,33 @@
             <div className="grid grid-cols-3 gap-2 max-w-[240px] mx-auto">
               {[1,2,3,4,5,6,7,8,9].map(n => (
                 <button key={n} onClick={() => handleDigit(String(n))}
-                  className="h-14 rounded-lg bg-gray-900 hover:bg-gray-800 active:bg-gray-700 text-white text-xl font-bold transition-colors border border-gray-700"
-                  style={{borderRadius:'8px'}}>
+                  className="h-14 rounded-lg text-white text-xl font-bold transition-colors"
+                  style={{borderRadius:'8px', background:'#1a2028', border:'1px solid #2a3540'}}
+                  onMouseOver={e => e.currentTarget.style.background='#243040'}
+                  onMouseOut={e => e.currentTarget.style.background='#1a2028'}>
                   {n}
                 </button>
               ))}
               <button onClick={onCancel}
-                className="h-14 rounded-lg bg-gray-900/50 hover:bg-gray-800 text-gray-500 text-sm font-semibold transition border border-gray-800"
-                style={{borderRadius:'8px'}}>
+                className="h-14 rounded-lg text-sm font-semibold transition"
+                style={{borderRadius:'8px', background:'#131a22', border:'1px solid #2a3540', color:'#8899a6'}}>
                 Back
               </button>
               <button onClick={() => handleDigit('0')}
-                className="h-14 rounded-lg bg-gray-900 hover:bg-gray-800 active:bg-gray-700 text-white text-xl font-bold transition-colors border border-gray-700"
-                style={{borderRadius:'8px'}}>
+                className="h-14 rounded-lg text-white text-xl font-bold transition-colors"
+                style={{borderRadius:'8px', background:'#1a2028', border:'1px solid #2a3540'}}
+                onMouseOver={e => e.currentTarget.style.background='#243040'}
+                onMouseOut={e => e.currentTarget.style.background='#1a2028'}>
                 0
               </button>
               <button onClick={handleBackspace}
-                className="h-14 rounded-lg bg-gray-900/50 hover:bg-gray-800 text-gray-500 text-lg transition border border-gray-800 flex items-center justify-center"
-                style={{borderRadius:'8px'}}>
+                className="h-14 rounded-lg text-lg transition flex items-center justify-center"
+                style={{borderRadius:'8px', background:'#131a22', border:'1px solid #2a3540', color:'#8899a6'}}>
                 <X size={20} />
               </button>
             </div>
 
-            <p className="text-xs text-gray-600">4-digit client access code</p>
+            <p className="text-xs" style={{color:'#556575'}}>4-digit client access code</p>
           </div>
 
           <style>{`
@@ -796,12 +800,12 @@
       return (
         <div className="fw-card p-6 animate-slide-up">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg" style={{background:'rgba(1,128,217,0.1)', border:'1px solid rgba(1,128,217,0.2)'}}>
+            <div className="p-2 rounded-lg" style={{background:'rgba(1,128,217,0.12)', border:'1px solid rgba(1,128,217,0.25)'}}>
               <Download size={20} style={{color:'#0180d9'}} />
             </div>
             <div>
               <h3 className="font-bold text-white text-sm">Compliance Packet</h3>
-              <p className="text-xs text-gray-500">One-click download for city clerks</p>
+              <p className="text-xs" style={{color:'#8899a6'}}>One-click download for city clerks</p>
             </div>
           </div>
           <div className="space-y-2">
@@ -809,20 +813,20 @@
               <a key={i}
                 href={item.url || '#'}
                 target="_blank" rel="noopener noreferrer"
-                className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                className={`flex items-center justify-between p-3 rounded-lg transition-all ${
                   item.url
-                    ? 'border-gray-800 hover:border-blue-500 cursor-pointer'
-                    : 'border-dashed border-gray-800 opacity-40 cursor-not-allowed'
+                    ? 'hover:border-blue-500 cursor-pointer'
+                    : 'border-dashed opacity-40 cursor-not-allowed'
                 }`}
-                style={{borderRadius:'8px'}}>
+                style={{borderRadius:'8px', border: item.url ? '1px solid #2a3540' : '1px dashed #2a3540'}}>
                 <div className="flex items-center gap-3">
                   <FileText size={16} style={{color:'#0180d9', opacity:0.7}} />
-                  <span className="text-sm font-medium text-gray-300">{item.name}</span>
+                  <span className="text-sm font-medium" style={{color:'#c4cdd5'}}>{item.name}</span>
                 </div>
                 {item.url ? (
                   <Download size={16} style={{color:'#0180d9'}} />
                 ) : (
-                  <span className="text-[10px] text-gray-600 px-2 py-0.5 rounded-full" style={{background:'rgba(255,255,255,0.05)'}}>Coming</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full" style={{color:'#556575', background:'#131a22'}}>Coming</span>
                 )}
               </a>
             ))}
@@ -1072,7 +1076,7 @@
       // ─── Landing View ───────────────────────────────────────────
       if (view === 'landing') {
         return (
-          <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 text-white">
+          <div className="min-h-screen flex flex-col items-center justify-center p-6 text-white" style={{background:'#0f1419'}}>
 
             <div className="max-w-md w-full space-y-10 text-center animate-fade-in">
               {/* Logo */}
@@ -1090,7 +1094,7 @@
 
               {/* Portal Selection */}
               <div className="space-y-4">
-                <p className="text-sm text-gray-500">Select your portal to access service agreements.</p>
+                <p className="text-sm text-gray-400">Select your portal to access service agreements.</p>
 
                 <div className="space-y-2">
                   {[
@@ -1103,8 +1107,8 @@
                       className="fw-card fw-btn w-full text-left px-5 py-4 flex items-center justify-between group">
                       <div>
                         <span className="font-semibold text-white block text-sm">{item.label}</span>
-                        <span className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                          {item.locked && <Lock size={10} className="text-gray-600" />} {item.sub}
+                        <span className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                          {item.locked && <Lock size={10} className="text-gray-500" />} {item.sub}
                         </span>
                       </div>
                       <ChevronRight size={16} className="text-gray-600 group-hover:text-blue-400 transition-colors" />
@@ -1114,11 +1118,11 @@
               </div>
 
               {/* Contact */}
-              <div className="pt-2 space-y-2 text-sm text-gray-500">
+              <div className="pt-2 space-y-2 text-sm text-gray-400">
                 <p>
                   <a href="tel:6129998067" className="hover:text-white transition font-medium" style={{color:'#81c31c'}}>(612) 999-8067</a>
                 </p>
-                <p className="text-[11px] text-gray-700">&copy; 2024&ndash;2026 Freshwater Landscaping LLC</p>
+                <p className="text-[11px] text-gray-500">&copy; 2024&ndash;2026 Freshwater Landscaping LLC</p>
               </div>
             </div>
 
@@ -1136,39 +1140,39 @@
 
       // ─── Dashboard View ──────────────────────────────────────────
       return (
-        <div className="min-h-screen bg-black text-white">
+        <div className="min-h-screen text-white" style={{background:'#0f1419'}}>
           {/* Navigation */}
-          <nav className="bg-black sticky top-0 z-40" style={{borderBottom:'1px solid #1a1a1a'}} role="navigation" aria-label="Main navigation">
+          <nav className="sticky top-0 z-40" style={{background:'#0f1419', borderBottom:'1px solid #2a3540'}} role="navigation" aria-label="Main navigation">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
               <div className="flex items-center gap-3 cursor-pointer" onClick={() => setView('landing')}>
                 <img src="public/assets/logo-dark.png" alt="Freshwater Landscaping" className="h-8 sm:h-10" />
               </div>
 
               {/* Desktop nav */}
-              <div className="hidden sm:flex items-center gap-1 p-1 rounded-lg" style={{background:'rgba(255,255,255,0.03)', border:'1px solid #1a1a1a'}}>
+              <div className="hidden sm:flex items-center gap-1 p-1 rounded-lg" style={{background:'#1a2028', border:'1px solid #2a3540'}}>
                 <button onClick={() => setTab('dashboard')}
-                  className={`px-4 py-1.5 rounded-md font-semibold text-sm transition ${tab === 'dashboard' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
-                  style={tab === 'dashboard' ? {background:'rgba(1,128,217,0.15)', color:'#a7e3f5'} : {}}>
+                  className={`px-4 py-1.5 rounded-md font-semibold text-sm transition ${tab === 'dashboard' ? 'text-white' : 'text-gray-400 hover:text-gray-200'}`}
+                  style={tab === 'dashboard' ? {background:'rgba(1,128,217,0.2)', color:'#a7e3f5'} : {}}>
                   Documents
                 </button>
                 <button onClick={() => setTab('chat')}
-                  className={`px-4 py-1.5 rounded-md font-semibold text-sm transition flex items-center gap-2 ${tab === 'chat' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
-                  style={tab === 'chat' ? {background:'rgba(1,128,217,0.15)', color:'#a7e3f5'} : {}}>
+                  className={`px-4 py-1.5 rounded-md font-semibold text-sm transition flex items-center gap-2 ${tab === 'chat' ? 'text-white' : 'text-gray-400 hover:text-gray-200'}`}
+                  style={tab === 'chat' ? {background:'rgba(1,128,217,0.2)', color:'#a7e3f5'} : {}}>
                   <MessageSquare size={14} /> Ask
                 </button>
               </div>
 
               {/* Mobile menu button */}
-              <button onClick={() => setMobileMenu(p => !p)} className="sm:hidden p-2 rounded-lg hover:bg-gray-900 text-gray-400" aria-label="Toggle menu">
+              <button onClick={() => setMobileMenu(p => !p)} className="sm:hidden p-2 rounded-lg hover:bg-gray-700/30 text-gray-400" aria-label="Toggle menu">
                 <Menu size={22} />
               </button>
             </div>
 
             {/* Mobile menu */}
             {mobileMenu && (
-              <div className="sm:hidden border-t border-gray-800 p-3 space-y-1 bg-black">
-                <button onClick={() => { setTab('dashboard'); setMobileMenu(false); }} className="w-full text-left px-4 py-3 rounded-lg text-sm font-semibold text-gray-300 hover:bg-gray-900">Documents</button>
-                <button onClick={() => { setTab('chat'); setMobileMenu(false); }} className="w-full text-left px-4 py-3 rounded-lg text-sm font-semibold text-gray-300 hover:bg-gray-900 flex items-center gap-2"><MessageSquare size={16} /> Ask</button>
+              <div className="sm:hidden p-3 space-y-1" style={{borderTop:'1px solid #2a3540', background:'#0f1419'}}>
+                <button onClick={() => { setTab('dashboard'); setMobileMenu(false); }} className="w-full text-left px-4 py-3 rounded-lg text-sm font-semibold text-gray-300 hover:bg-gray-700/30">Documents</button>
+                <button onClick={() => { setTab('chat'); setMobileMenu(false); }} className="w-full text-left px-4 py-3 rounded-lg text-sm font-semibold text-gray-300 hover:bg-gray-700/30 flex items-center gap-2"><MessageSquare size={16} /> Ask</button>
               </div>
             )}
           </nav>
@@ -1180,21 +1184,21 @@
                 {(() => {
                   const ct = CLIENT_TYPES[clientType] || CLIENT_TYPES.residential;
                   return (
-                    <div className="fw-hero border rounded-lg p-6 sm:p-8" style={{borderColor:'#1a1a1a', background:'rgba(10,10,10,0.95)', borderRadius:'12px'}}>
+                    <div className="fw-hero border rounded-lg p-6 sm:p-8" style={{borderColor:'#2a3540', background:'#1a2028', borderRadius:'12px'}}>
                       <div className="flex items-start justify-between">
                         <div>
                           <p className="text-xs font-semibold uppercase mb-1" style={{color:'#0180d9', letterSpacing:'0.15em'}}>{ct.tagline}</p>
                           <h2 className="text-xl sm:text-2xl font-bold text-white mt-1">{ct.welcome}</h2>
                         </div>
                         <button onClick={() => { setClientType(null); setView('landing'); }}
-                          className="fw-btn text-xs border border-gray-700 hover:border-gray-400 px-3 py-1.5 rounded-lg transition font-medium shrink-0 ml-4 text-gray-500 hover:text-white"
-                          style={{borderRadius:'8px'}}>
+                          className="fw-btn text-xs hover:text-white px-3 py-1.5 rounded-lg transition font-medium shrink-0 ml-4"
+                          style={{borderRadius:'8px', border:'1px solid #3a4550', color:'#8899a6'}}>
                           Switch Portal
                         </button>
                       </div>
-                      <div className="flex flex-wrap items-center gap-3 mt-4 text-sm text-gray-500">
+                      <div className="flex flex-wrap items-center gap-3 mt-4 text-sm" style={{color:'#8899a6'}}>
                         <span>{ct.label} Portal</span>
-                        <span className="w-1 h-1 rounded-full bg-gray-700" />
+                        <span className="w-1 h-1 rounded-full" style={{background:'#3a4550'}} />
                         <span>{visibleDocs.length} document{visibleDocs.length !== 1 ? 's' : ''} available</span>
                       </div>
                     </div>
@@ -1217,7 +1221,7 @@
                         <div className="flex items-center justify-between">
                           <div>
                             <h3 className="font-semibold text-white text-sm mb-1">{doc.title}</h3>
-                            <p className="text-xs text-gray-500">{doc.type} &middot; {doc.season}</p>
+                            <p className="text-xs" style={{color:'#8899a6'}}>{doc.type} &middot; {doc.season}</p>
                           </div>
                           <div className="flex items-center gap-3">
                             {isComingSoon ? (
@@ -1243,12 +1247,12 @@
                 {/* Clause Finder CTA */}
                 <div className="fw-card p-6">
                   <div className="flex items-start gap-4">
-                    <div className="p-2.5 rounded-lg flex-shrink-0" style={{background:'rgba(1,128,217,0.1)', border:'1px solid rgba(1,128,217,0.2)'}}>
+                    <div className="p-2.5 rounded-lg flex-shrink-0" style={{background:'rgba(1,128,217,0.12)', border:'1px solid rgba(1,128,217,0.25)'}}>
                       <Search size={20} style={{color:'#0180d9'}} />
                     </div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-sm mb-1" style={{color:'#a7e3f5'}}>Have a question about your agreement?</h3>
-                      <p className="text-sm text-gray-500 mb-4">
+                      <p className="text-sm mb-4" style={{color:'#8899a6'}}>
                         Search for specific clauses or terms across your documents.
                       </p>
                       <button onClick={() => setTab('chat')}
@@ -1263,44 +1267,44 @@
                 </div>
 
                 {/* Contact */}
-                <div className="flex flex-col sm:flex-row items-center justify-between p-5 rounded-lg border border-gray-800/50" style={{borderRadius:'12px', background:'rgba(10,10,10,0.5)'}}>
-                  <div className="text-sm text-gray-500 mb-3 sm:mb-0">Need help? Contact Freshwater Landscaping</div>
+                <div className="flex flex-col sm:flex-row items-center justify-between p-5 rounded-lg" style={{borderRadius:'12px', background:'#1a2028', border:'1px solid #2a3540'}}>
+                  <div className="text-sm mb-3 sm:mb-0" style={{color:'#8899a6'}}>Need help? Contact Freshwater Landscaping</div>
                   <div className="flex items-center gap-4">
                     <a href="tel:6129998067" className="text-sm font-semibold hover:text-white transition" style={{color:'#81c31c'}}>(612) 999-8067</a>
-                    <span className="w-1 h-1 rounded-full bg-gray-700" />
+                    <span className="w-1 h-1 rounded-full" style={{background:'#3a4550'}} />
                     <a href="mailto:freshwaterlandscaping@gmail.com" className="text-sm hover:text-white transition" style={{color:'#a7e3f5'}}>freshwaterlandscaping@gmail.com</a>
                   </div>
                 </div>
 
                 {/* Footer */}
                 <div className="text-center space-y-1 pb-4">
-                  <p className="text-[11px] text-gray-600">Informational only &mdash; the signed agreement controls.</p>
-                  <p className="text-[11px] text-gray-700">&copy; 2024&ndash;2026 Freshwater Landscaping LLC</p>
+                  <p className="text-[11px]" style={{color:'#8899a6'}}>Informational only &mdash; the signed agreement controls.</p>
+                  <p className="text-[11px]" style={{color:'#556575'}}>&copy; 2024&ndash;2026 Freshwater Landscaping LLC</p>
                 </div>
               </div>
             ) : (
               /* ─── Chat Tab ─────────────────────────────────── */
               <div className="fw-card h-[76vh] flex flex-col overflow-hidden animate-fade-in">
                 {/* Chat Header */}
-                <div className="p-4 border-b border-gray-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3" style={{borderBottom:'1px solid #2a3540'}}>
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg" style={{background:'rgba(1,128,217,0.15)', border:'1px solid rgba(1,128,217,0.25)'}}>
+                    <div className="p-2 rounded-lg" style={{background:'rgba(1,128,217,0.12)', border:'1px solid rgba(1,128,217,0.25)'}}>
                       <Search size={18} style={{color:'#0180d9'}} />
                     </div>
                     <div>
                       <h3 className="font-semibold text-sm text-white">Document Search</h3>
-                      <p className="text-xs text-gray-500">Find clauses and terms (informational only)</p>
+                      <p className="text-xs" style={{color:'#8899a6'}}>Find clauses and terms (informational only)</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 p-1 rounded-lg" style={{background:'rgba(255,255,255,0.05)', border:'1px solid #222'}}>
+                  <div className="flex items-center gap-1 p-1 rounded-lg" style={{background:'#131a22', border:'1px solid #2a3540'}}>
                     <button onClick={() => setMode('quick')}
-                      className={`px-3 py-1.5 rounded-md text-xs font-semibold transition ${mode === 'quick' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                      className={`px-3 py-1.5 rounded-md text-xs font-semibold transition ${mode === 'quick' ? 'text-white' : 'text-gray-400 hover:text-gray-200'}`}
                       style={mode === 'quick' ? {background:'#0180d9'} : {}}
                       title="Free: local clause search">
                       Quick
                     </button>
                     <button onClick={() => setMode('ai')}
-                      className={`px-3 py-1.5 rounded-md text-xs font-semibold transition ${mode === 'ai' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                      className={`px-3 py-1.5 rounded-md text-xs font-semibold transition ${mode === 'ai' ? 'text-white' : 'text-gray-400 hover:text-gray-200'}`}
                       style={mode === 'ai' ? {background:'#0180d9'} : {}}
                       title="Uses protected server key">
                       AI Explain
@@ -1319,7 +1323,7 @@
                       }`}
                       style={msg.role === 'user'
                         ? {background:'#0180d9'}
-                        : {background:'rgba(255,255,255,0.06)', border:'1px solid #222'}
+                        : {background:'#1a2028', border:'1px solid #2a3540'}
                       }>
                         {msg.text}
                       </div>
@@ -1327,13 +1331,13 @@
                   ))}
                   {isTyping && (
                     <div className="flex justify-start">
-                      <div className="px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-2" style={{background:'rgba(255,255,255,0.06)', border:'1px solid #222'}}>
+                      <div className="px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-2" style={{background:'#1a2028', border:'1px solid #2a3540'}}>
                         <div className="flex gap-1">
                           <span className="w-2 h-2 rounded-full animate-bounce" style={{background:'#0180d9', animationDelay:'0ms'}} />
                           <span className="w-2 h-2 rounded-full animate-bounce" style={{background:'#0180d9', animationDelay:'150ms'}} />
                           <span className="w-2 h-2 rounded-full animate-bounce" style={{background:'#0180d9', animationDelay:'300ms'}} />
                         </div>
-                        <span className="text-xs text-gray-500 ml-1">Analyzing agreement...</span>
+                        <span className="text-xs ml-1" style={{color:'#8899a6'}}>Analyzing agreement...</span>
                       </div>
                     </div>
                   )}
@@ -1341,16 +1345,16 @@
                 </div>
 
                 {/* Chat Input */}
-                <div className="p-4 border-t border-gray-800">
+                <div className="p-4" style={{borderTop:'1px solid #2a3540'}}>
                   <div className="flex gap-2">
                     <input ref={chatInputRef} type="text" value={chatInput}
                       onChange={e => setChatInput(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && handleChat()}
                       placeholder='Example: "If I cancel mid-season, what do I owe?"'
-                      className="flex-1 p-3 rounded-lg outline-none text-sm text-white placeholder-gray-600 transition"
-                      style={{background:'rgba(255,255,255,0.05)', border:'1px solid #222'}}
+                      className="flex-1 p-3 rounded-lg outline-none text-sm text-white transition"
+                      style={{background:'#131a22', border:'1px solid #2a3540', '::placeholder':{color:'#556575'}}}
                       onFocus={e => e.target.style.borderColor='#0180d9'}
-                      onBlur={e => e.target.style.borderColor='#222'}
+                      onBlur={e => e.target.style.borderColor='#2a3540'}
                       aria-label="Type your question about the agreement" />
                     <button onClick={handleChat}
                       className="fw-btn text-white p-3 rounded-lg disabled:opacity-50"
@@ -1362,10 +1366,10 @@
                     </button>
                   </div>
                   <div className="flex justify-between items-center mt-2">
-                    <span className="text-[11px] text-gray-600">
-                      <span className="font-medium text-gray-500">Note:</span> Quick mode is free. AI Explain uses a server function.
+                    <span className="text-[11px]" style={{color:'#556575'}}>
+                      <span className="font-medium" style={{color:'#8899a6'}}>Note:</span> Quick mode is free. AI Explain uses a server function.
                     </span>
-                    <kbd className="text-[10px] text-gray-600 px-1.5 py-0.5 rounded font-mono" style={{background:'rgba(255,255,255,0.05)', border:'1px solid #222'}}>/</kbd>
+                    <kbd className="text-[10px] px-1.5 py-0.5 rounded font-mono" style={{color:'#8899a6', background:'#131a22', border:'1px solid #2a3540'}}>/</kbd>
                   </div>
                 </div>
               </div>
