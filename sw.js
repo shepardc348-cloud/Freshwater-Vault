@@ -1,11 +1,11 @@
-const CACHE_NAME = 'freshwater-vault-v2';
+const CACHE_NAME = 'freshwater-vault-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
   '/src/css/main.css',
   '/src/css/themes.css',
-  '/public/assets/logo.svg',
+  '/public/assets/logo-dark.png',
 ];
 
 // Install - cache core assets

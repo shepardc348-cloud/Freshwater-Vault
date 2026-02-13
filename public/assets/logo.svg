@@ -1,18 +1,47 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 90" fill="none">
-  <!-- Leaf -->
-  <path d="M45 5C45 5 10 30 10 55C10 72 22 85 40 85C40 85 25 70 25 50C25 32 45 5 45 5Z" fill="#4CAF50"/>
-  <path d="M45 5C45 5 80 30 80 55C80 72 68 85 50 85C50 85 65 70 65 50C65 32 45 5 45 5Z" fill="#66BB6A"/>
-  <!-- Leaf vein -->
-  <path d="M45 18V75" stroke="#388E3C" stroke-width="1.5" opacity="0.5"/>
-  <path d="M45 35L33 48" stroke="#388E3C" stroke-width="1" opacity="0.4"/>
-  <path d="M45 35L57 48" stroke="#388E3C" stroke-width="1" opacity="0.4"/>
-  <path d="M45 50L36 60" stroke="#388E3C" stroke-width="1" opacity="0.4"/>
-  <path d="M45 50L54 60" stroke="#388E3C" stroke-width="1" opacity="0.4"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 100" fill="none">
+  <defs>
+    <linearGradient id="leafGrad" x1="20" y1="10" x2="60" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#6DC04B"/>
+      <stop offset="50%" stop-color="#4EA831"/>
+      <stop offset="100%" stop-color="#3D8C28"/>
+    </linearGradient>
+    <linearGradient id="leafDark" x1="30" y1="5" x2="55" y2="95" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#5CB83A"/>
+      <stop offset="100%" stop-color="#2E7D20"/>
+    </linearGradient>
+    <linearGradient id="dropGrad" x1="28" y1="50" x2="48" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4BA3E3"/>
+      <stop offset="100%" stop-color="#1A73C7"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Leaf body - main shape -->
+  <path d="M48 3C48 3 72 18 78 42C84 66 72 86 52 92C36 96 20 86 15 70C10 54 18 28 48 3Z" fill="url(#leafGrad)"/>
+
+  <!-- Leaf darker left edge for depth -->
+  <path d="M48 3C18 28 10 54 15 70C20 86 36 96 52 92C40 90 28 78 25 62C22 46 32 22 48 3Z" fill="url(#leafDark)" opacity="0.5"/>
+
+  <!-- Leaf outline -->
+  <path d="M48 3C48 3 72 18 78 42C84 66 72 86 52 92C36 96 20 86 15 70C10 54 18 28 48 3Z" stroke="#2E7D20" stroke-width="1.5" fill="none" opacity="0.4"/>
+
+  <!-- Leaf veins -->
+  <path d="M48 12L42 82" stroke="#2E7D20" stroke-width="1.8" opacity="0.45" stroke-linecap="round"/>
+  <path d="M46 30L30 46" stroke="#2E7D20" stroke-width="1.2" opacity="0.35" stroke-linecap="round"/>
+  <path d="M47 30L64 44" stroke="#2E7D20" stroke-width="1.2" opacity="0.35" stroke-linecap="round"/>
+  <path d="M45 48L28 62" stroke="#2E7D20" stroke-width="1.1" opacity="0.3" stroke-linecap="round"/>
+  <path d="M46 48L62 58" stroke="#2E7D20" stroke-width="1.1" opacity="0.3" stroke-linecap="round"/>
+  <path d="M44 62L32 74" stroke="#2E7D20" stroke-width="1" opacity="0.25" stroke-linecap="round"/>
+  <path d="M45 62L56 72" stroke="#2E7D20" stroke-width="1" opacity="0.25" stroke-linecap="round"/>
+
   <!-- Water droplet -->
-  <path d="M38 52C38 52 30 64 30 72C30 78 34 82 38 82C42 82 46 78 46 72C46 64 38 52 38 52Z" fill="#2196F3"/>
-  <ellipse cx="36" cy="71" rx="2.5" ry="3" fill="#64B5F6" opacity="0.6"/>
+  <path d="M36 52C36 52 22 70 22 80C22 90 30 96 38 96C46 96 54 90 54 80C54 70 36 52 36 52Z" fill="url(#dropGrad)"/>
+  <path d="M36 52C36 52 22 70 22 80C22 90 30 96 38 96C46 96 54 90 54 80C54 70 36 52 36 52Z" stroke="#1565C0" stroke-width="1" fill="none" opacity="0.3"/>
+  <!-- Droplet highlight -->
+  <ellipse cx="32" cy="79" rx="4" ry="5.5" fill="#7EC8F0" opacity="0.45" transform="rotate(-10 32 79)"/>
+
   <!-- "Freshwater" text -->
-  <text x="95" y="52" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="42" fill="#2979FF" letter-spacing="-0.5">Freshwater</text>
+  <text x="92" y="56" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-weight="700" font-size="48" fill="#3478C6" letter-spacing="-0.5">Freshwater</text>
+
   <!-- "LANDSCAPING" text -->
-  <text x="97" y="78" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="26" fill="#43A047" letter-spacing="3.5">LANDSCAPING</text>
+  <text x="95" y="84" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-weight="700" font-size="27" fill="#4CAF50" letter-spacing="5">LANDSCAPING</text>
 </svg>
