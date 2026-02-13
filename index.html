@@ -63,9 +63,9 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* Premium card hover glow */
-    .fw-card { background: #1a2028; border: 1px solid #2a3540; border-radius: 12px; transition: border-color 0.3s ease, box-shadow 0.3s ease; }
-    .fw-card:hover { border-color: #0180d9; box-shadow: 0 0 20px rgba(1,128,217,0.1); }
+    /* Card — resting shadow for depth, lift + glow on hover */
+    .fw-card { background: #1a2028; border: 1px solid #2a3540; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.25); transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease; }
+    .fw-card:hover { border-color: #0180d9; box-shadow: 0 8px 24px rgba(0,0,0,0.35), 0 0 16px rgba(1,128,217,0.08); transform: translateY(-1px); }
 
     /* Subtle blue top-line accent on hero */
     .fw-hero { position: relative; overflow: hidden; }
@@ -75,9 +75,10 @@
     .fw-status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #81c31c; margin-right: 6px; animation: statusPulse 2.5s ease-in-out infinite; }
     @keyframes statusPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-    /* Smooth button press */
+    /* Button — press + subtle shadow */
     .fw-btn { transition: all 0.2s ease; }
-    .fw-btn:active { transform: scale(0.97); }
+    .fw-btn:hover { transform: translateY(-1px); }
+    .fw-btn:active { transform: translateY(0) scale(0.98); }
 
     /* Google Docs HTML formatting — preserves highlights, tables, layout */
     .gdoc-content { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a1a; }
@@ -587,9 +588,9 @@
             <div className="px-6 py-3 border-t border-gray-200 flex justify-between items-center bg-white">
               <p className="text-xs text-gray-400">Informational only &mdash; the signed agreement controls.</p>
               <button onClick={onClose} className="fw-btn px-5 py-2 text-white rounded-lg font-semibold text-sm transition"
-                style={{background:'#0180d9', borderRadius:'8px'}}
-                onMouseOver={e => e.currentTarget.style.background='#006bb3'}
-                onMouseOut={e => e.currentTarget.style.background='#0180d9'}>
+                style={{background:'#0180d9', borderRadius:'8px', boxShadow:'0 4px 12px rgba(1,128,217,0.25)'}}
+                onMouseOver={e => { e.currentTarget.style.background='#006bb3'; e.currentTarget.style.boxShadow='0 6px 16px rgba(1,128,217,0.35)'; }}
+                onMouseOut={e => { e.currentTarget.style.background='#0180d9'; e.currentTarget.style.boxShadow='0 4px 12px rgba(1,128,217,0.25)'; }}>
                 Close
               </button>
             </div>
@@ -1268,9 +1269,9 @@
                       </p>
                       <button onClick={() => setTab('chat')}
                         className="fw-btn text-white px-5 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2"
-                        style={{background:'#0180d9', borderRadius:'8px'}}
-                        onMouseOver={e => e.currentTarget.style.background='#006bb3'}
-                        onMouseOut={e => e.currentTarget.style.background='#0180d9'}>
+                        style={{background:'#0180d9', borderRadius:'8px', boxShadow:'0 4px 12px rgba(1,128,217,0.25)'}}
+                        onMouseOver={e => { e.currentTarget.style.background='#006bb3'; e.currentTarget.style.boxShadow='0 6px 16px rgba(1,128,217,0.35)'; }}
+                        onMouseOut={e => { e.currentTarget.style.background='#0180d9'; e.currentTarget.style.boxShadow='0 4px 12px rgba(1,128,217,0.25)'; }}>
                         Open Search <ArrowRight size={16} />
                       </button>
                     </div>
