@@ -14,7 +14,6 @@
   <!-- Preconnect -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
   <!-- React + Babel -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -25,7 +24,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
           colors: {
@@ -61,31 +59,45 @@
 
   <style>
     /* Core styles — matched to freshwaterlandscaping.com */
-    body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: #000; color: #fff; line-height: 1.6; }
+    body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: #000; color: #fff; line-height: 1.6; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    /* Google Docs HTML formatting preservation */
-    .gdoc-content { font-family: 'Inter', system-ui, sans-serif; }
-    .gdoc-content p { margin: 0.4em 0; }
-    .gdoc-content h1, .gdoc-content h2, .gdoc-content h3, .gdoc-content h4, .gdoc-content h5 {
-      font-weight: 700; margin: 1em 0 0.4em; color: inherit;
-    }
-    .gdoc-content h1 { font-size: 1.5em; }
-    .gdoc-content h2 { font-size: 1.25em; }
-    .gdoc-content h3 { font-size: 1.1em; }
-    .gdoc-content table { border-collapse: collapse; width: 100%; margin: 1em 0; }
-    .gdoc-content td, .gdoc-content th { border: 1px solid #e2e8f0; padding: 8px 12px; text-align: left; }
-    .dark .gdoc-content td, .dark .gdoc-content th { border-color: #334155; }
+
+    /* Premium card hover glow */
+    .fw-card { background: rgba(10,10,10,0.9); border: 1px solid #222; border-radius: 12px; transition: border-color 0.3s ease, box-shadow 0.3s ease; }
+    .fw-card:hover { border-color: #0180d9; box-shadow: 0 0 20px rgba(1,128,217,0.08); }
+
+    /* Subtle blue top-line accent on hero */
+    .fw-hero { position: relative; overflow: hidden; }
+    .fw-hero::before { content: ''; position: absolute; top: 0; left: 10%; right: 10%; height: 2px; background: linear-gradient(90deg, transparent, #0180d9, transparent); border-radius: 2px; }
+
+    /* Status badge pulse for "Ready" */
+    .fw-status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #81c31c; margin-right: 6px; animation: statusPulse 2.5s ease-in-out infinite; }
+    @keyframes statusPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* Smooth button press */
+    .fw-btn { transition: all 0.2s ease; }
+    .fw-btn:active { transform: scale(0.97); }
+
+    /* Google Docs HTML formatting — preserves highlights, tables, layout */
+    .gdoc-content { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a1a; }
+    .gdoc-content p { margin: 0.3em 0; }
+    .gdoc-content table { border-collapse: collapse; width: 100%; margin: 0.8em 0; }
+    .gdoc-content td, .gdoc-content th { border: 1px solid #d1d5db; padding: 6px 10px; text-align: left; vertical-align: top; }
     .gdoc-content ul, .gdoc-content ol { padding-left: 1.5em; margin: 0.5em 0; }
-    .gdoc-content li { margin: 0.25em 0; }
+    .gdoc-content li { margin: 0.2em 0; }
     .gdoc-content img { max-width: 100%; height: auto; }
-    .gdoc-content a { color: #06b6d4; text-decoration: underline; }
+    .gdoc-content a { color: #0180d9; }
     .gdoc-content sup { font-size: 0.75em; vertical-align: super; }
     .gdoc-content sub { font-size: 0.75em; vertical-align: sub; }
-    .gdoc-content hr { border: none; border-top: 1px solid #e2e8f0; margin: 1.5em 0; }
-    .dark .gdoc-content hr { border-color: #334155; }
-    /* Preserve Google Docs highlights — they use inline background-color */
-    .gdoc-content span[style*="background-color"] { padding: 1px 2px; border-radius: 2px; }
+    .gdoc-content hr { border: none; border-top: 1px solid #e5e7eb; margin: 1em 0; }
+
+    /* Refined scrollbar for doc viewer */
+    .fw-scroll::-webkit-scrollbar { width: 6px; }
+    .fw-scroll::-webkit-scrollbar-track { background: transparent; }
+    .fw-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+    .fw-scroll::-webkit-scrollbar-thumb:hover { background: #999; }
+
     @media print {
       nav, .chat-panel, .no-print { display: none !important; }
       .print-only { display: block !important; }
@@ -210,7 +222,7 @@
         title: 'Master Service Agreement',
         type: 'Core Contract',
         season: '2026 Season',
-        googleDocId: '1lRhOh_Ji2jWlI7BUEo32GGskDAqFEmQp', // UPDATE with commercial MSA doc ID when ready
+        googleDocId: '1GoymNxV5Ul3LeuHUqV7DgEvwViSRD7mx',
         audience: ['commercial', 'hoa', 'municipal'],
       },
       com_sub: {
@@ -288,12 +300,13 @@
       render() {
         if (this.state.hasError) {
           return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-6">
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 max-w-md text-center shadow-xl border border-slate-200 dark:border-slate-700">
+            <div className="min-h-screen flex items-center justify-center bg-black p-6">
+              <div className="rounded-xl p-8 max-w-md text-center" style={{background:'rgba(10,10,10,0.95)', border:'1px solid #222', borderRadius:'12px'}}>
                 <AlertCircle className="mx-auto text-red-500 mb-4" size={48} />
-                <h2 className="text-xl font-bold mb-2 dark:text-white">Something went wrong</h2>
-                <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">An unexpected error occurred. Please refresh the page.</p>
-                <button onClick={() => window.location.reload()} className="bg-cyan-500 text-white px-6 py-2 rounded-xl font-semibold hover:bg-cyan-600 transition">
+                <h2 className="text-xl font-bold mb-2 text-white">Something went wrong</h2>
+                <p className="text-gray-500 text-sm mb-4">An unexpected error occurred. Please refresh the page.</p>
+                <button onClick={() => window.location.reload()} className="fw-btn text-white px-6 py-2 rounded-lg font-semibold transition"
+                  style={{background:'#0180d9', borderRadius:'8px'}}>
                   Refresh Page
                 </button>
               </div>
@@ -420,26 +433,25 @@
       const shortcuts = [
         { key: '/', desc: 'Focus search / chat input' },
         { key: 'Esc', desc: 'Close modal or panel' },
-        { key: 'D', desc: 'Toggle dark mode' },
         { key: '1', desc: 'Switch to Documents tab' },
         { key: '2', desc: 'Switch to Ask tab' },
         { key: '?', desc: 'Show keyboard shortcuts' },
       ];
       return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in" onClick={onClose} role="dialog" aria-label="Keyboard shortcuts">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-scale-in" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in" onClick={onClose} role="dialog" aria-label="Keyboard shortcuts">
+          <div className="rounded-xl shadow-2xl max-w-md w-full p-6 animate-scale-in" style={{background:'#0a0a0a', border:'1px solid #222', borderRadius:'12px'}} onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
-                <Keyboard className="text-cyan-500" size={20} />
-                <h3 className="font-bold text-lg dark:text-white">Keyboard Shortcuts</h3>
+                <Keyboard size={18} style={{color:'#0180d9'}} />
+                <h3 className="font-bold text-base text-white">Keyboard Shortcuts</h3>
               </div>
-              <button onClick={onClose} className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"><X size={18} className="dark:text-slate-400" /></button>
+              <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-800"><X size={18} className="text-gray-500" /></button>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1">
               {shortcuts.map(s => (
-                <div key={s.key} className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                  <span className="text-sm text-slate-600 dark:text-slate-300">{s.desc}</span>
-                  <kbd className="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-2 py-1 rounded text-xs font-mono font-bold">{s.key}</kbd>
+                <div key={s.key} className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-gray-800/50">
+                  <span className="text-sm text-gray-400">{s.desc}</span>
+                  <kbd className="text-gray-400 px-2 py-1 rounded text-xs font-mono font-bold" style={{background:'rgba(255,255,255,0.05)', border:'1px solid #222'}}>{s.key}</kbd>
                 </div>
               ))}
             </div>
@@ -452,18 +464,18 @@
     function TOCPanel({ toc, onSelect, onClose }) {
       return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-start justify-end animate-fade-in" onClick={onClose}>
-          <div className="bg-white dark:bg-slate-800 h-full w-80 max-w-full shadow-2xl overflow-y-auto animate-slide-down" onClick={e => e.stopPropagation()} role="navigation" aria-label="Table of contents">
-            <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center sticky top-0 bg-white dark:bg-slate-800">
+          <div className="bg-white h-full w-80 max-w-full shadow-2xl overflow-y-auto fw-scroll" onClick={e => e.stopPropagation()} role="navigation" aria-label="Table of contents">
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white">
               <div className="flex items-center gap-2">
-                <List className="text-cyan-500" size={18} />
-                <h3 className="font-bold dark:text-white">Table of Contents</h3>
+                <List size={18} style={{color:'#0180d9'}} />
+                <h3 className="font-bold text-gray-900 text-sm">Table of Contents</h3>
               </div>
-              <button onClick={onClose} className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"><X size={18} className="dark:text-slate-400" /></button>
+              <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100"><X size={18} className="text-gray-400" /></button>
             </div>
             <div className="p-2">
               {toc.map((item, i) => (
                 <button key={i} onClick={() => { onSelect(item); onClose(); }}
-                  className="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-700 dark:text-slate-300 hover:bg-cyan-50 dark:hover:bg-slate-700 transition truncate">
+                  className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-blue-50 hover:text-gray-900 transition truncate">
                   {item.heading}
                 </button>
               ))}
@@ -532,45 +544,54 @@
       const handlePrint = () => window.print();
 
       return (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in" role="dialog" aria-label="Document viewer">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-scale-in">
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in" role="dialog" aria-label="Document viewer">
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-scale-in" style={{borderRadius:'12px'}}>
             {/* Header */}
-            <div className="flex justify-between items-center p-6 border-b border-slate-200 dark:border-slate-700">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200" style={{background:'#fafafa'}}>
               <div className="flex items-center gap-3">
-                <FileText className="text-cyan-500" size={24} />
-                <h2 className="font-bold text-lg dark:text-white">{docTitle}</h2>
+                <div className="p-1.5 rounded-md" style={{background:'rgba(1,128,217,0.1)'}}>
+                  <FileText size={20} style={{color:'#0180d9'}} />
+                </div>
+                <h2 className="font-bold text-base text-gray-900">{docTitle}</h2>
               </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setShowTOC(true)} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Table of Contents"><List size={18} className="text-slate-500 dark:text-slate-400" /></button>
-                <button onClick={handlePrint} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Print"><Printer size={18} className="text-slate-500 dark:text-slate-400" /></button>
-                <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition"><X size={22} className="dark:text-slate-400" /></button>
+              <div className="flex items-center gap-1">
+                <button onClick={() => setShowTOC(true)} className="p-2 rounded-lg hover:bg-gray-100 transition" title="Table of Contents"><List size={18} className="text-gray-400" /></button>
+                <button onClick={handlePrint} className="p-2 rounded-lg hover:bg-gray-100 transition" title="Print"><Printer size={18} className="text-gray-400" /></button>
+                <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 transition"><X size={20} className="text-gray-400" /></button>
               </div>
             </div>
 
             {/* Search */}
-            <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+            <div className="px-6 py-3 border-b border-gray-200 bg-white">
               <div className="flex gap-2">
                 <div className="flex-1 relative">
                   <input value={docSearch} onChange={e => setDocSearch(e.target.value)} placeholder="Search within document..."
-                    className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 pl-10 pr-3 py-2 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500 dark:text-white text-sm"
+                    className="w-full bg-gray-50 border border-gray-200 pl-10 pr-3 py-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-sm text-gray-900"
+                    style={{borderRadius:'8px'}}
                     aria-label="Search document text" />
-                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 </div>
-                {docSearch && <button onClick={() => setDocSearch('')} className="px-4 py-2 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-600 dark:text-white transition">Clear</button>}
+                {docSearch && <button onClick={() => setDocSearch('')} className="px-4 py-2 rounded-lg bg-gray-50 border border-gray-200 font-semibold text-sm text-gray-600 hover:bg-gray-100 transition" style={{borderRadius:'8px'}}>Clear</button>}
               </div>
             </div>
 
             {/* Content — renders Google Docs HTML with original formatting */}
-            <div className="flex-1 overflow-y-auto p-6 bg-slate-50 dark:bg-slate-900/30">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-50 fw-scroll">
               <div ref={contentRef}
-                className="gdoc-content bg-white dark:bg-slate-800 p-8 shadow-sm border border-slate-200 dark:border-slate-700 rounded-xl text-sm leading-relaxed dark:text-slate-300"
+                className="gdoc-content bg-white p-6 sm:p-8 shadow-sm border border-gray-200 text-sm leading-relaxed"
+                style={{borderRadius:'12px'}}
                 dangerouslySetInnerHTML={{ __html: agreementText }} />
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800">
-              <p className="text-xs text-slate-500 dark:text-slate-400">Informational only - the signed agreement controls.</p>
-              <button onClick={onClose} className="px-6 py-2 bg-cyan-500 text-white rounded-xl font-semibold hover:bg-cyan-600 transition">Close</button>
+            <div className="px-6 py-3 border-t border-gray-200 flex justify-between items-center bg-white">
+              <p className="text-xs text-gray-400">Informational only &mdash; the signed agreement controls.</p>
+              <button onClick={onClose} className="fw-btn px-5 py-2 text-white rounded-lg font-semibold text-sm transition"
+                style={{background:'#0180d9', borderRadius:'8px'}}
+                onMouseOver={e => e.currentTarget.style.background='#006bb3'}
+                onMouseOut={e => e.currentTarget.style.background='#0180d9'}>
+                Close
+              </button>
             </div>
           </div>
 
@@ -594,42 +615,42 @@
 
       return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in" role="dialog" aria-label="Analytics dashboard">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto animate-scale-in">
-            <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+          <div className="rounded-xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto animate-scale-in fw-scroll" style={{background:'#0a0a0a', border:'1px solid #222', borderRadius:'12px'}}>
+            <div className="p-6 border-b flex justify-between items-center" style={{borderColor:'#222'}}>
               <div className="flex items-center gap-3">
-                <BarChart className="text-cyan-500" size={24} />
-                <h2 className="font-bold text-lg dark:text-white">Analytics Dashboard</h2>
+                <BarChart size={22} style={{color:'#0180d9'}} />
+                <h2 className="font-bold text-lg text-white">Analytics Dashboard</h2>
               </div>
-              <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"><X size={20} className="dark:text-slate-400" /></button>
+              <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-800"><X size={20} className="text-gray-500" /></button>
             </div>
 
             <div className="p-6 space-y-6">
               {/* Metric Cards */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                  { label: 'Page Views', value: views, color: 'text-cyan-500' },
-                  { label: 'Searches', value: searches, color: 'text-emerald-500' },
-                  { label: 'AI Queries', value: aiQueries, color: 'text-violet-500' },
-                  { label: 'Sessions', value: sessions, color: 'text-amber-500' },
+                  { label: 'Page Views', value: views, color: '#0180d9' },
+                  { label: 'Searches', value: searches, color: '#81c31c' },
+                  { label: 'AI Queries', value: aiQueries, color: '#a7e3f5' },
+                  { label: 'Sessions', value: sessions, color: '#0180d9' },
                 ].map(m => (
-                  <div key={m.label} className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 text-center">
-                    <p className={`text-2xl font-bold ${m.color}`}>{m.value}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{m.label}</p>
+                  <div key={m.label} className="rounded-lg p-4 text-center" style={{background:'rgba(255,255,255,0.03)', border:'1px solid #222', borderRadius:'8px'}}>
+                    <p className="text-2xl font-bold" style={{color:m.color}}>{m.value}</p>
+                    <p className="text-xs text-gray-500 mt-1">{m.label}</p>
                   </div>
                 ))}
               </div>
 
               {/* Top Searches */}
               <div>
-                <h3 className="font-semibold text-sm mb-3 dark:text-white">Popular Searches</h3>
+                <h3 className="font-semibold text-sm mb-3 text-white">Popular Searches</h3>
                 {topSearches.length === 0 ? (
-                  <p className="text-sm text-slate-400">No searches recorded yet.</p>
+                  <p className="text-sm text-gray-600">No searches recorded yet.</p>
                 ) : (
                   <div className="space-y-2">
                     {topSearches.map(([term, count]) => (
-                      <div key={term} className="flex justify-between items-center bg-slate-50 dark:bg-slate-700/50 rounded-lg px-4 py-2">
-                        <span className="text-sm dark:text-slate-300">{term}</span>
-                        <span className="text-xs font-mono text-slate-400">{count}</span>
+                      <div key={term} className="flex justify-between items-center rounded-lg px-4 py-2" style={{background:'rgba(255,255,255,0.03)', border:'1px solid #1a1a1a'}}>
+                        <span className="text-sm text-gray-300">{term}</span>
+                        <span className="text-xs font-mono text-gray-600">{count}</span>
                       </div>
                     ))}
                   </div>
@@ -773,14 +794,14 @@
     // ─── Compliance Packet Component (Municipal) ───────────────────
     function CompliancePacket() {
       return (
-        <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm animate-slide-up">
+        <div className="fw-card p-6 animate-slide-up">
           <div className="flex items-center gap-3 mb-4">
-            <div className="bg-amber-50 dark:bg-amber-500/10 p-2 rounded-xl">
-              <Download className="text-amber-600 dark:text-amber-400" size={20} />
+            <div className="p-2 rounded-lg" style={{background:'rgba(1,128,217,0.1)', border:'1px solid rgba(1,128,217,0.2)'}}>
+              <Download size={20} style={{color:'#0180d9'}} />
             </div>
             <div>
-              <h3 className="font-bold dark:text-white">Compliance Packet</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">One-click download for city clerks</p>
+              <h3 className="font-bold text-white text-sm">Compliance Packet</h3>
+              <p className="text-xs text-gray-500">One-click download for city clerks</p>
             </div>
           </div>
           <div className="space-y-2">
@@ -788,19 +809,20 @@
               <a key={i}
                 href={item.url || '#'}
                 target="_blank" rel="noopener noreferrer"
-                className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+                className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
                   item.url
-                    ? 'border-slate-200 dark:border-slate-600 hover:border-amber-300 dark:hover:border-amber-600 hover:shadow-sm cursor-pointer'
-                    : 'border-dashed border-slate-300 dark:border-slate-600 opacity-50 cursor-not-allowed'
-                }`}>
+                    ? 'border-gray-800 hover:border-blue-500 cursor-pointer'
+                    : 'border-dashed border-gray-800 opacity-40 cursor-not-allowed'
+                }`}
+                style={{borderRadius:'8px'}}>
                 <div className="flex items-center gap-3">
-                  <FileText size={16} className="text-amber-500/70" />
-                  <span className="text-sm font-medium dark:text-slate-300">{item.name}</span>
+                  <FileText size={16} style={{color:'#0180d9', opacity:0.7}} />
+                  <span className="text-sm font-medium text-gray-300">{item.name}</span>
                 </div>
                 {item.url ? (
-                  <Download size={16} className="text-amber-500" />
+                  <Download size={16} style={{color:'#0180d9'}} />
                 ) : (
-                  <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-full">Coming</span>
+                  <span className="text-[10px] text-gray-600 px-2 py-0.5 rounded-full" style={{background:'rgba(255,255,255,0.05)'}}>Coming</span>
                 )}
               </a>
             ))}
@@ -829,11 +851,6 @@
       const [showShortcuts, setShowShortcuts] = useState(false);
       const [showAnalytics, setShowAnalytics] = useState(false);
       const [mobileMenu, setMobileMenu] = useState(false);
-      const [darkMode, setDarkMode] = useState(() => {
-        const saved = localStorage.getItem('fw_dark');
-        if (saved !== null) return saved === 'true';
-        return window.matchMedia('(prefers-color-scheme: dark)').matches;
-      });
 
       const chatEndRef = useRef(null);
       const chatInputRef = useRef(null);
@@ -881,12 +898,6 @@
         showToast(`Welcome to the ${CLIENT_TYPES[pendingType]?.label} Portal`, 'success');
       };
 
-      // Dark mode
-      useEffect(() => {
-        document.documentElement.classList.toggle('dark', darkMode);
-        localStorage.setItem('fw_dark', darkMode);
-      }, [darkMode]);
-
       // Analytics init
       useEffect(() => { analytics.init(); }, []);
 
@@ -919,14 +930,15 @@
           try {
             const response = await fetch(`https://docs.google.com/document/d/${doc.googleDocId}/export?format=html`);
             if (!response.ok) throw new Error('Fetch failed');
-            let text = await response.text();
-            // Extract just the body content and clean Google's wrapper
-            const bodyMatch = text.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-            if (bodyMatch) text = bodyMatch[1];
-            // Pull out Google's inline styles for formatting preservation
-            const styleMatch = text.match(/<style[^>]*>([\s\S]*?)<\/style>/gi);
-            const googleStyles = styleMatch ? styleMatch.join('\n') : '';
-            text = googleStyles + text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+            const rawHtml = await response.text();
+            // Extract Google's CSS from <head> (contains highlight colors, table styles, etc.)
+            const styleMatches = rawHtml.match(/<style[^>]*>([\s\S]*?)<\/style>/gi);
+            const googleStyles = styleMatches ? styleMatches.join('\n') : '';
+            // Extract the <body> content
+            const bodyMatch = rawHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+            const bodyContent = bodyMatch ? bodyMatch[1] : rawHtml;
+            // Combine: styles first, then body HTML (preserves highlights, tables, formatting)
+            let text = googleStyles + bodyContent;
             setDocTexts(prev => ({ ...prev, [doc.id]: text }));
             setDocStatuses(prev => ({ ...prev, [doc.id]: 'loaded' }));
             localStorage.setItem(cacheKey, text);
@@ -987,7 +999,6 @@
             setShowDocViewer(false); setShowShortcuts(false);
             setShowAnalytics(false); setMobileMenu(false);
           }
-          if (e.key === 'd' || e.key === 'D') setDarkMode(p => !p);
           if (e.key === '1') { setView('dashboard'); setTab('dashboard'); }
           if (e.key === '2') { setView('dashboard'); setTab('chat'); }
           if (e.key === '?') setShowShortcuts(true);
@@ -1063,71 +1074,51 @@
         return (
           <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 text-white">
 
-            <div className="max-w-md w-full space-y-8 text-center animate-fade-in">
+            <div className="max-w-md w-full space-y-10 text-center animate-fade-in">
               {/* Logo */}
               <div className="flex justify-center">
-                <img src="public/assets/logo-dark.png" alt="Freshwater Landscaping" className="h-16 sm:h-20" />
+                <img src="public/assets/logo-dark.png" alt="Freshwater Landscaping" className="h-16 sm:h-20" style={{filter:'drop-shadow(0 0 30px rgba(1,128,217,0.12))'}} />
               </div>
 
-              <div className="border-t-2 border-b-2" style={{borderColor:'#0180d9'}}>
-                <h1 className="text-xl font-semibold py-3 tracking-wide" style={{color:'#a7e3f5'}}>
+              <div className="relative">
+                <div className="absolute inset-x-0 top-0 h-px" style={{background:'linear-gradient(90deg, transparent, #0180d9 30%, #0180d9 70%, transparent)'}} />
+                <h1 className="text-lg font-semibold py-4 tracking-widest uppercase" style={{color:'#a7e3f5', letterSpacing:'0.2em'}}>
                   Client Portal
                 </h1>
+                <div className="absolute inset-x-0 bottom-0 h-px" style={{background:'linear-gradient(90deg, transparent, #0180d9 30%, #0180d9 70%, transparent)'}} />
               </div>
 
               {/* Portal Selection */}
-              <div className="space-y-3">
-                <p className="text-sm text-gray-400">Access your service agreements and documents.</p>
+              <div className="space-y-4">
+                <p className="text-sm text-gray-500">Select your portal to access service agreements.</p>
 
                 <div className="space-y-2">
-                  <button onClick={() => handleClientSelect('residential')}
-                    className="w-full text-left px-5 py-4 rounded-lg border border-gray-700 hover:border-blue-500 bg-black hover:bg-gray-900 transition-colors duration-200 flex items-center justify-between group"
-                    style={{borderRadius:'8px'}}>
-                    <div>
-                      <span className="font-semibold text-white block">Residential</span>
-                      <span className="text-xs text-gray-500">View your service documents</span>
-                    </div>
-                    <ChevronRight size={18} className="text-gray-600 group-hover:text-blue-400 transition-colors" />
-                  </button>
-
-                  <button onClick={() => handleClientSelect('commercial')}
-                    className="w-full text-left px-5 py-4 rounded-lg border border-gray-700 hover:border-blue-500 bg-black hover:bg-gray-900 transition-colors duration-200 flex items-center justify-between group"
-                    style={{borderRadius:'8px'}}>
-                    <div>
-                      <span className="font-semibold text-white block">Commercial</span>
-                      <span className="text-xs text-gray-500 flex items-center gap-1"><Lock size={10} /> Access code required</span>
-                    </div>
-                    <ChevronRight size={18} className="text-gray-600 group-hover:text-blue-400 transition-colors" />
-                  </button>
-
-                  <button onClick={() => handleClientSelect('hoa')}
-                    className="w-full text-left px-5 py-4 rounded-lg border border-gray-700 hover:border-blue-500 bg-black hover:bg-gray-900 transition-colors duration-200 flex items-center justify-between group"
-                    style={{borderRadius:'8px'}}>
-                    <div>
-                      <span className="font-semibold text-white block">HOA / Townhomes</span>
-                      <span className="text-xs text-gray-500 flex items-center gap-1"><Lock size={10} /> Access code required</span>
-                    </div>
-                    <ChevronRight size={18} className="text-gray-600 group-hover:text-blue-400 transition-colors" />
-                  </button>
-
-                  <button onClick={() => handleClientSelect('municipal')}
-                    className="w-full text-left px-5 py-4 rounded-lg border border-gray-700 hover:border-blue-500 bg-black hover:bg-gray-900 transition-colors duration-200 flex items-center justify-between group"
-                    style={{borderRadius:'8px'}}>
-                    <div>
-                      <span className="font-semibold text-white block">Municipal / City</span>
-                      <span className="text-xs text-gray-500 flex items-center gap-1"><Lock size={10} /> Access code required</span>
-                    </div>
-                    <ChevronRight size={18} className="text-gray-600 group-hover:text-blue-400 transition-colors" />
-                  </button>
+                  {[
+                    { type: 'residential', label: 'Residential', sub: 'View your service documents', locked: false },
+                    { type: 'commercial', label: 'Commercial', sub: 'Access code required', locked: true },
+                    { type: 'hoa', label: 'HOA / Townhomes', sub: 'Access code required', locked: true },
+                    { type: 'municipal', label: 'Municipal / City', sub: 'Access code required', locked: true },
+                  ].map(item => (
+                    <button key={item.type} onClick={() => handleClientSelect(item.type)}
+                      className="fw-card fw-btn w-full text-left px-5 py-4 flex items-center justify-between group">
+                      <div>
+                        <span className="font-semibold text-white block text-sm">{item.label}</span>
+                        <span className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                          {item.locked && <Lock size={10} className="text-gray-600" />} {item.sub}
+                        </span>
+                      </div>
+                      <ChevronRight size={16} className="text-gray-600 group-hover:text-blue-400 transition-colors" />
+                    </button>
+                  ))}
                 </div>
               </div>
 
               {/* Contact */}
-              <div className="pt-4 space-y-2 text-sm text-gray-500">
+              <div className="pt-2 space-y-2 text-sm text-gray-500">
                 <p>
-                  <a href="tel:6129998067" className="hover:text-white transition" style={{color:'#81c31c'}}>(612) 999-8067</a>
+                  <a href="tel:6129998067" className="hover:text-white transition font-medium" style={{color:'#81c31c'}}>(612) 999-8067</a>
                 </p>
-                <p className="text-xs text-gray-700">&copy; 2024&ndash;2026 Freshwater Landscaping LLC</p>
+                <p className="text-[11px] text-gray-700">&copy; 2024&ndash;2026 Freshwater Landscaping LLC</p>
               </div>
             </div>
 
@@ -1147,23 +1138,23 @@
       return (
         <div className="min-h-screen bg-black text-white">
           {/* Navigation */}
-          <nav className="bg-black border-b-2 sticky top-0 z-40" style={{borderColor:'#0180d9'}} role="navigation" aria-label="Main navigation">
+          <nav className="bg-black sticky top-0 z-40" style={{borderBottom:'1px solid #1a1a1a'}} role="navigation" aria-label="Main navigation">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
               <div className="flex items-center gap-3 cursor-pointer" onClick={() => setView('landing')}>
                 <img src="public/assets/logo-dark.png" alt="Freshwater Landscaping" className="h-8 sm:h-10" />
               </div>
 
               {/* Desktop nav */}
-              <div className="hidden sm:flex items-center gap-1">
+              <div className="hidden sm:flex items-center gap-1 p-1 rounded-lg" style={{background:'rgba(255,255,255,0.03)', border:'1px solid #1a1a1a'}}>
                 <button onClick={() => setTab('dashboard')}
-                  className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${tab === 'dashboard' ? 'text-white' : 'text-gray-500 hover:text-white'}`}
-                  style={tab === 'dashboard' ? {color:'#a7e3f5'} : {}}>
+                  className={`px-4 py-1.5 rounded-md font-semibold text-sm transition ${tab === 'dashboard' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                  style={tab === 'dashboard' ? {background:'rgba(1,128,217,0.15)', color:'#a7e3f5'} : {}}>
                   Documents
                 </button>
                 <button onClick={() => setTab('chat')}
-                  className={`px-4 py-2 rounded-lg font-semibold text-sm transition flex items-center gap-2 ${tab === 'chat' ? 'text-white' : 'text-gray-500 hover:text-white'}`}
-                  style={tab === 'chat' ? {color:'#a7e3f5'} : {}}>
-                  <MessageSquare size={16} /> Ask
+                  className={`px-4 py-1.5 rounded-md font-semibold text-sm transition flex items-center gap-2 ${tab === 'chat' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                  style={tab === 'chat' ? {background:'rgba(1,128,217,0.15)', color:'#a7e3f5'} : {}}>
+                  <MessageSquare size={14} /> Ask
                 </button>
               </div>
 
@@ -1189,20 +1180,21 @@
                 {(() => {
                   const ct = CLIENT_TYPES[clientType] || CLIENT_TYPES.residential;
                   return (
-                    <div className="border-2 rounded-lg p-6 sm:p-8" style={{borderColor:'#0180d9', background:'rgba(0,0,0,0.85)', borderRadius:'12px'}}>
+                    <div className="fw-hero border rounded-lg p-6 sm:p-8" style={{borderColor:'#1a1a1a', background:'rgba(10,10,10,0.95)', borderRadius:'12px'}}>
                       <div className="flex items-start justify-between">
                         <div>
-                          <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{color:'#a7e3f5'}}>{ct.tagline}</p>
-                          <h2 className="text-xl sm:text-2xl font-bold text-white">{ct.welcome}</h2>
+                          <p className="text-xs font-semibold uppercase mb-1" style={{color:'#0180d9', letterSpacing:'0.15em'}}>{ct.tagline}</p>
+                          <h2 className="text-xl sm:text-2xl font-bold text-white mt-1">{ct.welcome}</h2>
                         </div>
                         <button onClick={() => { setClientType(null); setView('landing'); }}
-                          className="text-xs border border-gray-600 hover:border-white px-3 py-1.5 rounded-lg transition font-medium shrink-0 ml-4 text-gray-400 hover:text-white">
+                          className="fw-btn text-xs border border-gray-700 hover:border-gray-400 px-3 py-1.5 rounded-lg transition font-medium shrink-0 ml-4 text-gray-500 hover:text-white"
+                          style={{borderRadius:'8px'}}>
                           Switch Portal
                         </button>
                       </div>
-                      <div className="flex flex-wrap gap-3 mt-4 text-sm text-gray-400">
+                      <div className="flex flex-wrap items-center gap-3 mt-4 text-sm text-gray-500">
                         <span>{ct.label} Portal</span>
-                        <span className="text-gray-700">|</span>
+                        <span className="w-1 h-1 rounded-full bg-gray-700" />
                         <span>{visibleDocs.length} document{visibleDocs.length !== 1 ? 's' : ''} available</span>
                       </div>
                     </div>
@@ -1219,24 +1211,19 @@
                     return (
                       <div key={doc.id}
                         onClick={() => { if (!isComingSoon) { setActiveDocId(doc.id); setShowDocViewer(true); } }}
-                        className={`p-5 rounded-lg border transition-colors duration-200 ${
-                          isComingSoon
-                            ? 'border-gray-800 opacity-50 cursor-default'
-                            : 'border-gray-700 hover:border-blue-500 cursor-pointer'
-                        }`}
-                        style={{background:'rgba(0,0,0,0.85)', borderRadius:'12px'}}
+                        className={`fw-card fw-btn p-5 ${isComingSoon ? 'opacity-40 cursor-default' : 'cursor-pointer'}`}
                         role="button" tabIndex={0} aria-label={`View ${doc.title}`}
                         onKeyDown={e => e.key === 'Enter' && !isComingSoon && (() => { setActiveDocId(doc.id); setShowDocViewer(true); })()}>
                         <div className="flex items-center justify-between">
                           <div>
-                            <h3 className="font-semibold text-white mb-1">{doc.title}</h3>
+                            <h3 className="font-semibold text-white text-sm mb-1">{doc.title}</h3>
                             <p className="text-xs text-gray-500">{doc.type} &middot; {doc.season}</p>
                           </div>
                           <div className="flex items-center gap-3">
                             {isComingSoon ? (
-                              <span className="text-xs text-gray-600">Coming Soon</span>
+                              <span className="text-[11px] text-gray-600 uppercase tracking-wide">Coming Soon</span>
                             ) : hasContent ? (
-                              <span className="text-xs" style={{color:'#81c31c'}}>Ready</span>
+                              <span className="text-xs flex items-center" style={{color:'#81c31c'}}><span className="fw-status-dot" />Ready</span>
                             ) : status === 'loading' ? (
                               <span className="text-xs text-gray-500">Loading...</span>
                             ) : (
@@ -1254,55 +1241,67 @@
                 {clientType === 'municipal' && <CompliancePacket />}
 
                 {/* Clause Finder CTA */}
-                <div className="p-6 rounded-lg border border-gray-700" style={{background:'rgba(0,0,0,0.85)', borderRadius:'12px'}}>
-                  <h3 className="font-semibold mb-2" style={{color:'#a7e3f5'}}>Have a question about your agreement?</h3>
-                  <p className="text-sm text-gray-400 mb-4">
-                    Search for specific clauses or terms across your documents.
-                  </p>
-                  <button onClick={() => setTab('chat')}
-                    className="text-white px-5 py-2.5 rounded-lg font-semibold text-sm transition-colors flex items-center gap-2"
-                    style={{background:'#0180d9', borderRadius:'8px'}}
-                    onMouseOver={e => e.currentTarget.style.background='#006bb3'}
-                    onMouseOut={e => e.currentTarget.style.background='#0180d9'}>
-                    Open Search <ArrowRight size={16} />
-                  </button>
+                <div className="fw-card p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-2.5 rounded-lg flex-shrink-0" style={{background:'rgba(1,128,217,0.1)', border:'1px solid rgba(1,128,217,0.2)'}}>
+                      <Search size={20} style={{color:'#0180d9'}} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-sm mb-1" style={{color:'#a7e3f5'}}>Have a question about your agreement?</h3>
+                      <p className="text-sm text-gray-500 mb-4">
+                        Search for specific clauses or terms across your documents.
+                      </p>
+                      <button onClick={() => setTab('chat')}
+                        className="fw-btn text-white px-5 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2"
+                        style={{background:'#0180d9', borderRadius:'8px'}}
+                        onMouseOver={e => e.currentTarget.style.background='#006bb3'}
+                        onMouseOut={e => e.currentTarget.style.background='#0180d9'}>
+                        Open Search <ArrowRight size={16} />
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Contact */}
-                <div className="flex flex-col sm:flex-row items-center justify-between p-5 rounded-lg border border-gray-800" style={{borderRadius:'12px'}}>
-                  <div className="text-sm text-gray-400 mb-3 sm:mb-0">Need help? Contact Freshwater Landscaping</div>
+                <div className="flex flex-col sm:flex-row items-center justify-between p-5 rounded-lg border border-gray-800/50" style={{borderRadius:'12px', background:'rgba(10,10,10,0.5)'}}>
+                  <div className="text-sm text-gray-500 mb-3 sm:mb-0">Need help? Contact Freshwater Landscaping</div>
                   <div className="flex items-center gap-4">
                     <a href="tel:6129998067" className="text-sm font-semibold hover:text-white transition" style={{color:'#81c31c'}}>(612) 999-8067</a>
+                    <span className="w-1 h-1 rounded-full bg-gray-700" />
                     <a href="mailto:freshwaterlandscaping@gmail.com" className="text-sm hover:text-white transition" style={{color:'#a7e3f5'}}>freshwaterlandscaping@gmail.com</a>
                   </div>
                 </div>
 
                 {/* Footer */}
                 <div className="text-center space-y-1 pb-4">
-                  <p className="text-xs text-gray-600">Informational only &mdash; the signed agreement controls.</p>
-                  <p className="text-xs text-gray-700">&copy; 2024&ndash;2026 Freshwater Landscaping LLC</p>
+                  <p className="text-[11px] text-gray-600">Informational only &mdash; the signed agreement controls.</p>
+                  <p className="text-[11px] text-gray-700">&copy; 2024&ndash;2026 Freshwater Landscaping LLC</p>
                 </div>
               </div>
             ) : (
               /* ─── Chat Tab ─────────────────────────────────── */
-              <div className="rounded-lg border border-gray-700 h-[76vh] flex flex-col overflow-hidden animate-fade-in" style={{background:'rgba(0,0,0,0.85)', borderRadius:'12px'}}>
+              <div className="fw-card h-[76vh] flex flex-col overflow-hidden animate-fade-in">
                 {/* Chat Header */}
-                <div className="p-4 border-b border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div className="p-4 border-b border-gray-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg" style={{background:'#0180d9'}}><Search size={20} className="text-white" /></div>
+                    <div className="p-2 rounded-lg" style={{background:'rgba(1,128,217,0.15)', border:'1px solid rgba(1,128,217,0.25)'}}>
+                      <Search size={18} style={{color:'#0180d9'}} />
+                    </div>
                     <div>
                       <h3 className="font-semibold text-sm text-white">Document Search</h3>
                       <p className="text-xs text-gray-500">Find clauses and terms (informational only)</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 p-1 rounded-lg" style={{background:'rgba(255,255,255,0.05)', border:'1px solid #222'}}>
                     <button onClick={() => setMode('quick')}
-                      className={`px-3 py-2 rounded-lg text-xs font-bold transition ${mode === 'quick' ? 'bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-sm' : 'bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600'}`}
+                      className={`px-3 py-1.5 rounded-md text-xs font-semibold transition ${mode === 'quick' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                      style={mode === 'quick' ? {background:'#0180d9'} : {}}
                       title="Free: local clause search">
                       Quick
                     </button>
                     <button onClick={() => setMode('ai')}
-                      className={`px-3 py-2 rounded-lg text-xs font-bold transition ${mode === 'ai' ? 'bg-gradient-to-r from-cyan-500 to-emerald-500 text-white shadow-sm' : 'bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600'}`}
+                      className={`px-3 py-1.5 rounded-md text-xs font-semibold transition ${mode === 'ai' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                      style={mode === 'ai' ? {background:'#0180d9'} : {}}
                       title="Uses protected server key">
                       AI Explain
                     </button>
@@ -1315,22 +1314,26 @@
                     <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-slide-up`}>
                       <div className={`max-w-[88%] sm:max-w-[80%] p-4 rounded-2xl text-sm whitespace-pre-wrap leading-relaxed ${
                         msg.role === 'user'
-                          ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-tr-sm shadow-sm'
-                          : 'bg-slate-100 dark:bg-slate-700/50 text-slate-800 dark:text-slate-200 rounded-tl-sm'
-                      }`}>
+                          ? 'text-white rounded-tr-sm'
+                          : 'text-gray-200 rounded-tl-sm'
+                      }`}
+                      style={msg.role === 'user'
+                        ? {background:'#0180d9'}
+                        : {background:'rgba(255,255,255,0.06)', border:'1px solid #222'}
+                      }>
                         {msg.text}
                       </div>
                     </div>
                   ))}
                   {isTyping && (
                     <div className="flex justify-start">
-                      <div className="bg-slate-100 dark:bg-slate-700/50 px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-2">
+                      <div className="px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-2" style={{background:'rgba(255,255,255,0.06)', border:'1px solid #222'}}>
                         <div className="flex gap-1">
-                          <span className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                          <span className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                          <span className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                          <span className="w-2 h-2 rounded-full animate-bounce" style={{background:'#0180d9', animationDelay:'0ms'}} />
+                          <span className="w-2 h-2 rounded-full animate-bounce" style={{background:'#0180d9', animationDelay:'150ms'}} />
+                          <span className="w-2 h-2 rounded-full animate-bounce" style={{background:'#0180d9', animationDelay:'300ms'}} />
                         </div>
-                        <span className="text-xs text-slate-400 ml-1">Analyzing agreement...</span>
+                        <span className="text-xs text-gray-500 ml-1">Analyzing agreement...</span>
                       </div>
                     </div>
                   )}
@@ -1338,25 +1341,31 @@
                 </div>
 
                 {/* Chat Input */}
-                <div className="p-4 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800">
+                <div className="p-4 border-t border-gray-800">
                   <div className="flex gap-2">
                     <input ref={chatInputRef} type="text" value={chatInput}
                       onChange={e => setChatInput(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && handleChat()}
                       placeholder='Example: "If I cancel mid-season, what do I owe?"'
-                      className="flex-1 bg-slate-50 dark:bg-slate-900 p-3 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500 text-sm dark:text-white dark:placeholder-slate-500 border border-transparent focus:border-cyan-500 transition"
+                      className="flex-1 p-3 rounded-lg outline-none text-sm text-white placeholder-gray-600 transition"
+                      style={{background:'rgba(255,255,255,0.05)', border:'1px solid #222'}}
+                      onFocus={e => e.target.style.borderColor='#0180d9'}
+                      onBlur={e => e.target.style.borderColor='#222'}
                       aria-label="Type your question about the agreement" />
                     <button onClick={handleChat}
-                      className="bg-gradient-to-r from-cyan-500 to-emerald-500 text-white p-3 rounded-xl hover:from-cyan-400 hover:to-emerald-400 transition-all transform active:scale-95 shadow-sm disabled:opacity-50"
+                      className="fw-btn text-white p-3 rounded-lg disabled:opacity-50"
+                      style={{background:'#0180d9', borderRadius:'8px'}}
+                      onMouseOver={e => { if (!isTyping) e.currentTarget.style.background='#006bb3'; }}
+                      onMouseOut={e => e.currentTarget.style.background='#0180d9'}
                       disabled={isTyping} title="Ask" aria-label="Send question">
-                      <Send size={20} />
+                      <Send size={18} />
                     </button>
                   </div>
                   <div className="flex justify-between items-center mt-2">
-                    <span className="text-[11px] text-slate-400 dark:text-slate-500">
-                      <span className="font-semibold">Note:</span> Quick mode is free. AI Explain uses a server function.
+                    <span className="text-[11px] text-gray-600">
+                      <span className="font-medium text-gray-500">Note:</span> Quick mode is free. AI Explain uses a server function.
                     </span>
-                    <kbd className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded font-mono">/</kbd>
+                    <kbd className="text-[10px] text-gray-600 px-1.5 py-0.5 rounded font-mono" style={{background:'rgba(255,255,255,0.05)', border:'1px solid #222'}}>/</kbd>
                   </div>
                 </div>
               </div>
