@@ -1082,8 +1082,8 @@
             <div className="max-w-md w-full space-y-10 text-center animate-fade-in">
               {/* Logo */}
               <div className="flex justify-center">
-                <div className="h-32 w-32 sm:h-40 sm:w-40 md:h-44 md:w-44 overflow-hidden flex items-center justify-center">
-                  <img src="public/assets/logo-clean.png" alt="Freshwater Landscaping" className="h-full w-full object-contain scale-[1.55] sm:scale-[1.65]" style={{
+                <div className="w-full max-w-md overflow-visible flex items-center justify-center">
+                  <img src="public/assets/logo-clean.png" alt="Freshwater Landscaping" className="h-32 sm:h-40 md:h-44 w-auto" style={{
                     filter:'drop-shadow(0 0 30px rgba(1,128,217,0.12))'
                   }} />
                 </div>
@@ -1161,9 +1161,7 @@
           <nav className="sticky top-0 z-40" style={{background:'#0f1419', borderBottom:'1px solid #2a3540'}} role="navigation" aria-label="Main navigation">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
               <div className="flex items-center gap-3 cursor-pointer" onClick={() => setView('landing')}>
-                <div className="h-16 w-16 sm:h-20 sm:w-20 overflow-hidden flex items-center justify-center">
-                  <img src="public/assets/logo-clean.png" alt="Freshwater Landscaping" className="h-full w-full object-contain scale-[1.55] sm:scale-[1.65]" />
-                </div>
+                <img src="public/assets/logo-clean.png" alt="Freshwater Landscaping" className="h-16 sm:h-20 w-auto" />
               </div>
 
               {/* Desktop nav */}
